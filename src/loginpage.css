@@ -1,0 +1,94 @@
+.login-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background: url('./background.jpeg') no-repeat center center/cover;
+  background-size: cover;
+}
+
+
+/* Left Section (Logo & Branding) */
+.left-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.6); /* Dark overlay for contrast */
+}
+
+.logo {
+  width: 300px;
+  height: auto;
+}
+
+/* Right Section (Login Box) */
+.right-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Login Box Styling */
+.login-box {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  width: 350px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Form Inputs */
+.input-group {
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #000;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  outline: none;
+}
+
+/* Login Button */
+button {
+  width: 30%;
+  padding: 10px;
+  background-color: #ff9900;
+  border: none;
+  color: rgb(17, 17, 17);
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 25px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition: background 0.3s;
+}
+
+button:hover {
+  background-color: #cc7a00;
+}
+
+/* Forgot Password Link */
+.forgot-password {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #000;
+  cursor: pointer;
+  text-decoration: underline;
+}
