@@ -33,7 +33,7 @@
 
 /* Login Box Styling */
 .login-box {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.24);
   padding: 2.5rem;
   border-radius: 12px;
   text-align: left;
@@ -75,7 +75,7 @@
 }
 
 .input-group input:focus {
-  border-color: #4a90e2;
+  border-color: #064286;
   box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }
 
