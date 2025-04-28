@@ -3,8 +3,11 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import backgroundImage from "./background.jpeg";
 import logoImage from "./logo.png";
 import profileImage from "./profile.png";
+import { useNavigate } from "react-router-dom";
 
 const BoatRegister = () => {
+  const navigate = useNavigate();
+
   const requests = [
     "User 1 Request",
     "User 2 Request",
@@ -12,6 +15,10 @@ const BoatRegister = () => {
     "User 4 Request",
     "User 5 Request",
   ];
+
+  const handleRequestClick = (request) => {
+    navigate("/BoatRegistationPage", { state: { request } });
+  };
 
   return (
     <div
@@ -53,17 +60,17 @@ const BoatRegister = () => {
 
         <div className="d-flex flex-column">
           {requests.map((request, index) => (
-            <div
+            <button
               key={index}
-              className="text-center fw-semibold py-3 px-3 rounded-pill mb-3"
+              className="btn btn-secondary text-center fw-semibold py-3 px-2 rounded-pill mb-3 w-100"
               style={{
-                backgroundColor: "#e0e0e0",
                 fontFamily: "'Georgia', serif",
                 fontSize: "1.2rem",
               }}
+              onClick={() => handleRequestClick(request)}
             >
               {request}
-            </div>
+            </button>
           ))}
         </div>
       </div>
