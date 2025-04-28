@@ -107,7 +107,7 @@ function LoginPage() {
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </button>
               <p className="forgot-password" onClick={handleForgotPassword}>
-                Forgot Password?
+                Forgot Password ?
               </p>
             </div>
           </form>
