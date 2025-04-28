@@ -1,35 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import profileImage from "./profile.png";
 import logoImage from "./logo.png";
 import backgroundImage from "./background.jpeg";
+// Import icons from a compatible library (Bootstrap icons are available via CDN)
+// Add this to your index.html: <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [userEmail, setUserEmail] = useState("Administrator");
-  const [loading, setLoading] = useState(true);
 
-  // Check auth state when component mounts
-  useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // Use email from location state if available, otherwise from auth
-        const email = location.state?.userEmail || user.email;
-        setUserEmail(email);
-      } else {
-        // If no user is logged in, redirect to login
-        navigate('/');
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [navigate, location.state]);
-
+  // Enhanced buttons with icons and descriptions
   const buttons = [
     { 
       label: "Boat Register", 
@@ -48,7 +29,7 @@ const Dashboard = () => {
     { 
       label: "Handle Fisherman ID", 
       color: "success", 
-      path: "/fisherman-id",
+      path: "/HandleFisherman",
       icon: "bi-person-badge",
       description: "Process fisherman identification cards"
     },
@@ -82,16 +63,6 @@ const Dashboard = () => {
     },
   ];
 
-  if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
       className="min-vh-100 vw-100 d-flex justify-content-center align-items-center"
@@ -109,6 +80,7 @@ const Dashboard = () => {
           className="bg-light bg-opacity-85 p-4 p-md-5 rounded-4 shadow-lg" 
           style={{ backdropFilter: "blur(10px)" }}
         >
+          {/* Header with improved styling */}
           <div className="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
             <div className="d-flex align-items-center">
               <img 
@@ -118,6 +90,7 @@ const Dashboard = () => {
                 height="60" 
                 className="me-3"
               />
+              {/* <h2 className="text-primary mb-0 d-none d-md-block">Fisheries Management System</h2> */}
             </div>
             <h1 className="text-center flex-grow-1 fw-bold text-uppercase d-none d-md-block">
               Dashboard
@@ -127,7 +100,7 @@ const Dashboard = () => {
             </h1>
             <div className="d-flex align-items-center">
               <div className="text-end me-3 d-none d-md-block">
-                <h6 className="mb-0">{userEmail}</h6>
+                <h6 className="mb-0">Administrator</h6>
                 <small className="text-muted">Online</small>
               </div>
               <img 
@@ -140,6 +113,7 @@ const Dashboard = () => {
             </div>
           </div>
 
+          {/* Enhanced cards section */}
           <div className="row g-4">
             {buttons.map((btn, index) => (
               <div className="col-12 col-md-6 col-lg-4" key={index}>
@@ -168,6 +142,7 @@ const Dashboard = () => {
             ))}
           </div>
 
+          {/* Footer */}
           <div className="mt-4 pt-3 border-top text-center">
             <p className="text-muted mb-0 small">
               Fisheries Management System • v2.1.0 • © 2025
@@ -178,5 +153,8 @@ const Dashboard = () => {
     </div>
   );
 };
+
+// Import the CSS file for hover-shadow styles
+import "./Dashboard.css";
 
 export default Dashboard;

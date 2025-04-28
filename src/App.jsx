@@ -10,19 +10,16 @@ import HandleFisherman from './HandleFisherman';
 import BoatRegistrationPage from './BoatRegistationPage';
 function App() {
   return (
-<div> 
-  <BoatRegistrationPage />
-</div>
 
-    // <Routes>
-    //   <Route path="/" element={<FirstPage />} />
-    //   <Route path="/login" element={<LoginPage />} />
-    //   <Route path="/dashboard" element={<Dashboard />} />
-    //   <Route path="/BoatRegister" element={<BoatRegister />} />
-    //   <Route path="/BoatRegistrationPage" element={<BoatRegistrationPage />} />
-    //   <Route path="/BoatOwnerDetails" element={<BoatOwnerDetails />} />
-    //   <Route path="/HandleFisherman" element={<HandleFisherman />} />
-    // </Routes>
+    <Routes>
+      <Route path="/" element={<FirstPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/BoatRegister" element={<BoatRegister />} />
+      <Route path="/BoatRegistrationPage" element={<BoatRegistrationPage />} />
+      <Route path="/BoatOwnerDetails" element={<BoatOwnerDetails />} />
+      <Route path="/HandleFisherman" element={<HandleFisherman />} />
+    </Routes>
   );
 }
 
