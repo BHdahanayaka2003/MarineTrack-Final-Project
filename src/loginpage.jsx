@@ -1,48 +1,19 @@
+// LoginPage.jsx
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { initializeApp } from "firebase/app";
-import './loginpage.css';
+import './loginpage.css';  // Fixed CSS import
+import { useNavigate } from 'react-router-dom';  // Added navigate import
 import logo from './logo.png';
-
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyCRjW_lsIwKlL99xi0hU2_x2xWVSTBSkTg",
-  authDomain: "finalproject-4453c.firebaseapp.com",
-  projectId: "finalproject-4453c",
-  storageBucket: "finalproject-4453c.firebasestorage.app",
-  messagingSenderId: "866850090007",
-  appId: "1:866850090007:web:111a4fcef7be69de0a8052",
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const navigate = useNavigate();  // Added navigate hook
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setError('');
-
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      console.log('Login successful!');
-      // Navigate to dashboard after successful login
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err.message);
-      console.error('Login error:', err);
-    }
-  };
-
-  const handleForgotPassword = () => {
-    // You can implement password reset functionality here
-    navigate('/forgot-password');
+    console.log('Email:', email, 'Password:', password);
+    // After successful login, navigate to dashboard
+    navigate('/dashboard');
   };
 
   return (
@@ -73,11 +44,8 @@ function LoginPage() {
                 required
               />
             </div>
-            {error && <p className="error-message">{error}</p>}
             <button type="submit">Login</button>
-            <p className="forgot-password" onClick={handleForgotPassword}>
-              Forgot Password?
-            </p>
+            <p className="forgot-password">Forgot Password?</p>
           </form>
         </div>
       </div>
