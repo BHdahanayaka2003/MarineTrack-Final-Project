@@ -1,4 +1,3 @@
-// LoginPage.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
@@ -11,7 +10,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyCRjW_lsIwKlL99xi0hU2_x2xWVSTBSkTg",
     authDomain: "finalproject-4453c.firebaseapp.com",
     projectId: "finalproject-4453c",
-    storageBucket: "finalproject-4453c.firebasestorage.app",
+    storageBucket: "finalproject-4453c.appspot.com",
     messagingSenderId: "866850090007",
     appId: "1:866850090007:web:111a4fcef7be69de0a8052",
 };
@@ -33,9 +32,11 @@ function LoginPage() {
     setIsLoading(true);
     
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
       console.log('Login successful!');
-      navigate('/dashboard');
+      // Pass user email to dashboard
+      navigate('/dashboard', { state: { userEmail: user.email } });
     } catch (err) {
       const errorMessage = getErrorMessage(err.code);
       setError(errorMessage);
@@ -44,7 +45,6 @@ function LoginPage() {
     }
   };
   
-  // More user-friendly error messages
   const getErrorMessage = (errorCode) => {
     switch(errorCode) {
       case 'auth/invalid-email':
@@ -63,7 +63,6 @@ function LoginPage() {
   };
 
   const handleForgotPassword = () => {
-    // Implement password reset functionality
     alert('Password reset functionality will be implemented here');
   };
 
