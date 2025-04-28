@@ -6,6 +6,7 @@ import Dashboard from './Dashboard';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import BoatRegister from './BoatRegister';
 import BoatOwnerDetails from './BoatOwnerDetails';
+import HandleFisherman from './HandleFisherman';
 function App() {
   return (
     <Routes>
@@ -14,6 +15,7 @@ function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/BoatRegister" element={<BoatRegister />} />
       <Route path="/BoatOwnerDetails" element={<BoatOwnerDetails />} />
+      <Route path="/HandleFisherman" element={<HandleFisherman />} />
     </Routes>
   );
 }
