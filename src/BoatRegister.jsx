@@ -8,16 +8,16 @@ import { useNavigate } from "react-router-dom";
 const BoatRegister = () => {
   const navigate = useNavigate();
 
-  const requests = [
-    "User 1 Request",
-    "User 2 Request",
-    "User 3 Request",
-    "User 4 Request",
-    "User 5 Request",
+  const buttonLabels = [
+    "Boat 1 Registration",
+    "Boat 2 Registration",
+    "Boat 3 Registration",
+    "Boat 4 Registration",
+    "Boat 5 Registration",
   ];
 
-  const handleRequestClick = (request) => {
-    navigate("/BoatRegistationPage", { state: { request } });
+  const handleButtonClick = (label) => {
+    navigate("/BoatRegistrationPage", { state: { label } });
   };
 
   return (
@@ -48,7 +48,7 @@ const BoatRegister = () => {
             height="60"
             className="rounded-circle"
           />
-          <h2 className="text-center flex-grow-1 fw-bold m-0">Registration panel</h2>
+          <h2 className="text-center flex-grow-1 fw-bold m-0">Registration Panel</h2>
           <img
             src={profileImage}
             alt="Profile"
@@ -59,7 +59,7 @@ const BoatRegister = () => {
         </div>
 
         <div className="d-flex flex-column">
-          {requests.map((request, index) => (
+          {buttonLabels.map((label, index) => (
             <button
               key={index}
               className="btn btn-secondary text-center fw-semibold py-3 px-2 rounded-pill mb-3 w-100"
@@ -67,9 +67,9 @@ const BoatRegister = () => {
                 fontFamily: "'Georgia', serif",
                 fontSize: "1.2rem",
               }}
-              onClick={() => handleRequestClick(request)}
+              onClick={() => handleButtonClick(label)}
             >
-              {request}
+              {label}
             </button>
           ))}
         </div>

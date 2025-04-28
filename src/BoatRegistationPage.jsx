@@ -22,16 +22,16 @@ return (
                 }}
             >
                 <div className="card-header bg-primary text-white text-center">
-                    <h2 className="mb-0">Request Panel / User Inputs</h2>
+                    <h2 className="mb-0">Boat Registration Form</h2>
                 </div>
                 <div className="card-body">
                     <form>
                         {[
-                            { label: "Name", id: "name", value: "Ben 10" },
-                            { label: "ID Number", id: "idNumber", value: "123456789V" },
-                            { label: "Phone Number", id: "phoneNumber", value: "+94 0114555587" },
-                            { label: "Email", id: "email", value: "BenTenison@gmail.com" },
-                            { label: "Address", id: "address", value: "America" },
+                            { label: "Name", id: "name", placeholder: "Enter your name" },
+                            { label: "ID Number", id: "idNumber", placeholder: "Enter your ID number" },
+                            { label: "Phone Number", id: "phoneNumber", placeholder: "Enter your phone number" },
+                            { label: "Email", id: "email", placeholder: "Enter your email" },
+                            { label: "Address", id: "address", placeholder: "Enter your address" },
                         ].map((field) => (
                             <div className="row mb-3" key={field.id}>
                                 <label htmlFor={field.id} className="col-sm-3 col-form-label fw-bold">
@@ -44,8 +44,7 @@ return (
                                             type="text"
                                             className="form-control"
                                             id={field.id}
-                                            value={field.value}
-                                            readOnly
+                                            placeholder={field.placeholder}
                                         />
                                     </div>
                                 </div>
