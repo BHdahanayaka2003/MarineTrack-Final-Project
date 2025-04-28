@@ -1,15 +1,19 @@
 // LoginPage.jsx
 import React, { useState } from 'react';
-import './firstpage.css';
+import './loginpage.css';  // Fixed CSS import
+import { useNavigate } from 'react-router-dom';  // Added navigate import
 import logo from './logo.png';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();  // Added navigate hook
 
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Email:', email, 'Password:', password);
+    // After successful login, navigate to dashboard
+    navigate('/dashboard');
   };
 
   return (

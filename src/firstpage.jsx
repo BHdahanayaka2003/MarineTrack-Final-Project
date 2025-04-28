@@ -1,6 +1,6 @@
-// HomePage.jsx
+// FirstPage.jsx
 import React from 'react';
-import './loginPage.css';
+import './firstpage.css';  // Fixed CSS import
 import { useNavigate } from 'react-router-dom';
 import logo from './logo.png';
 
