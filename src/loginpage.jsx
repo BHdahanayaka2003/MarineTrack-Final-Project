@@ -43,7 +43,6 @@ function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              
             </div>
             <button type="submit">Login</button>
             <p className="forgot-password">Forgot Password?</p>
