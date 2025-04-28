@@ -1,19 +1,70 @@
 // LoginPage.jsx
 import React, { useState } from 'react';
-import './loginpage.css';  // Fixed CSS import
-import { useNavigate } from 'react-router-dom';  // Added navigate import
+import { useNavigate } from 'react-router-dom';
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { initializeApp } from "firebase/app";
+import './loginpage.css';
 import logo from './logo.png';
+
+// Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyCRjW_lsIwKlL99xi0hU2_x2xWVSTBSkTg",
+    authDomain: "finalproject-4453c.firebaseapp.com",
+    projectId: "finalproject-4453c",
+    storageBucket: "finalproject-4453c.firebasestorage.app",
+    messagingSenderId: "866850090007",
+    appId: "1:866850090007:web:111a4fcef7be69de0a8052",
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate();  // Added navigate hook
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Email:', email, 'Password:', password);
-    // After successful login, navigate to dashboard
-    navigate('/dashboard');
+    setError('');
+    setIsLoading(true);
+    
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      console.log('Login successful!');
+      navigate('/dashboard');
+    } catch (err) {
+      const errorMessage = getErrorMessage(err.code);
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // More user-friendly error messages
+  const getErrorMessage = (errorCode) => {
+    switch(errorCode) {
+      case 'auth/invalid-email':
+        return 'Invalid email address format.';
+      case 'auth/user-disabled':
+        return 'This account has been disabled.';
+      case 'auth/user-not-found':
+        return 'No account found with this email.';
+      case 'auth/wrong-password':
+        return 'Incorrect password.';
+      case 'auth/too-many-requests':
+        return 'Too many failed login attempts. Try again later.';
+      default:
+        return 'An error occurred during login. Please try again.';
+    }
+  };
+
+  const handleForgotPassword = () => {
+    // Implement password reset functionality
+    alert('Password reset functionality will be implemented here');
   };
 
   return (
@@ -23,14 +74,16 @@ function LoginPage() {
       </div>
       <div className="right-section">
         <div className="login-box">
+          <h2 className="login-title">Sign In to Your Account</h2>
           <form onSubmit={handleSubmit}>
             <div className="input-group">
-              <label htmlFor="email">Email</label>
+              <label htmlFor="email">Email Address</label>
               <input
                 type="email"
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
                 required
               />
             </div>
@@ -41,11 +94,23 @@ function LoginPage() {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
                 required
               />
             </div>
-            <button type="submit">Login</button>
-            <p className="forgot-password">Forgot Password?</p>
+            {error && <div className="error-message">{error}</div>}
+            <div className="form-actions">
+              <button 
+                type="submit" 
+                className="login-button"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Signing in...' : 'Sign In'}
+              </button>
+              <p className="forgot-password" onClick={handleForgotPassword}>
+                Forgot Password?
+              </p>
+            </div>
           </form>
         </div>
       </div>
