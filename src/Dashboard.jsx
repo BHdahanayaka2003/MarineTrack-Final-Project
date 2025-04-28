@@ -30,7 +30,7 @@ const Dashboard = () => {
     { 
       label: "Handle Fisherman ID", 
       color: "success", 
-      path: "/HandleFishern",
+      path: "/HandleFishermanID",
       icon: "bi-person-badge",
       description: "Process fisherman identification cards"
     },

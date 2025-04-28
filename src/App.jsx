@@ -11,6 +11,7 @@ import BoatRegistrationPage from './BoatRegistationPage';
 import OwnerDetails from './OwnerDetails';
 import FishermanDetails from './FishermanDetails';
 import OwnerRegister from './OwnerRegister';
+import HandleFishermanID from './HandleFishermanID';
 function App() {
   return (
 
@@ -25,6 +26,7 @@ function App() {
       <Route path="/HandleFisherman" element={<HandleFisherman />} />
       <Route path="/FishermanDetails" element={<FishermanDetails />} />
       <Route path="/OwnerRegister" element={<OwnerRegister />} />
+      <Route path="/HandleFishermanID" element={<HandleFishermanID/>} />
     </Routes>
   );
 }
