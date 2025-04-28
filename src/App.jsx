@@ -5,6 +5,7 @@ import LoginPage from './loginpage';
 import Dashboard from './Dashboard';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import BoatRegister from './BoatRegister';
+import BoatOwnerDetails from './BoatOwnerDetails';
 function App() {
   return (
     <Routes>
@@ -12,6 +13,7 @@ function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/BoatRegister" element={<BoatRegister />} />
+      <Route path="/BoatOwnerDetails" element={<BoatOwnerDetails />} />
     </Routes>
   );
 }

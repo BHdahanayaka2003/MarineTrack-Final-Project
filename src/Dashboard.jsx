@@ -22,7 +22,7 @@ const Dashboard = () => {
     { 
       label: "Display Boat Owners", 
       color: "danger", 
-      path: "/display-owners",
+      path: "/BoatOwnerDetails",
       icon: "bi-people-fill",
       description: "View and manage boat owner information"
     },
@@ -43,7 +43,7 @@ const Dashboard = () => {
     { 
       label: "Owner Register", 
       color: "primary", 
-      path: "/owner-register",
+      path: "/BoatOwnerDetails",
       icon: "bi-person-plus",
       description: "Add new boat owners to the system"
     },
