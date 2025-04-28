@@ -4,7 +4,7 @@ import './loginPage.css';
 import { useNavigate } from 'react-router-dom';
 import logo from './logo.png';
 
-const HomePage = () => {
+const FirstPage = () => {
   const navigate = useNavigate();
 
   const handleLogin = () => {
@@ -24,4 +24,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default FirstPage;

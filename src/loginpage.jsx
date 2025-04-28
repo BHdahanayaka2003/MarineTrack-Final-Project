@@ -1,6 +1,6 @@
 // LoginPage.jsx
 import React, { useState } from 'react';
-import './homePage.css';
+import './firstpage.css';
 import logo from './logo.png';
 
 function LoginPage() {
