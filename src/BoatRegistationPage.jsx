@@ -1,6 +1,7 @@
 import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import backgroundImage from './background.jpeg';
+import logoImage from './logo.png';
 
 const BoatRegistrationPage = () => {
 return (
@@ -21,8 +22,16 @@ return (
                     backdropFilter: "blur(10px)",
                 }}
             >
-                <div className="card-header bg-primary text-white text-center">
-                    <h2 className="mb-0">Boat Registration Form</h2>
+                <div className="card-header bg-primary text-white d-flex align-items-center justify-content-between">
+                    <img
+                        src={logoImage}
+                        alt="Logo"
+                        style={{ maxWidth: "50px", cursor: "pointer" }}
+                        onClick={() => {
+                            window.location.href = "/Dashboard";
+                        }}
+                    />
+                    <h2 className="mb-0 text-center flex-grow-1">Boat Registration Form</h2>
                 </div>
                 <div className="card-body">
                     <form>

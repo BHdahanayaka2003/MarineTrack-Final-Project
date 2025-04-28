@@ -47,6 +47,8 @@ const BoatRegister = () => {
             width="60"
             height="60"
             className="rounded-circle"
+            style={{ cursor: "pointer" }}
+            onClick={() => navigate("/Dashboard")}
           />
           <h2 className="text-center flex-grow-1 fw-bold m-0">Registration Panel</h2>
           <img
