@@ -82,6 +82,14 @@ const FishermanDetails = () => {
                                     <td>CAT 9666</td>
                                 </tr>
                                 <tr>
+                                    <td className="fw-bold text-secondary">Fisherman ID</td>
+                                    <td>:</td>
+                                    <td>1234567</td>
+                                    <td className="fw-bold text-secondary">Boat Type</td>
+                                    <td>:</td>
+                                    <td>Big Boat</td>
+                                </tr>
+                                <tr>
                                     <td className="fw-bold text-secondary">Phone Number</td>
                                     <td>:</td>
                                     <td>+94 0114555587</td>
