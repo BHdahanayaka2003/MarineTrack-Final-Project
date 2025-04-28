@@ -3,15 +3,22 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import backgroundImage from "./background.jpeg";
 import logoImage from "./logo.png";
 import profileImage from "./profile.png";
+import { useNavigate } from "react-router-dom";
 
 const BoatOwnerDetails = () => {
-  const requests = [
-    "Sunil",
-    "Kamal",
-    "Nimal",
+  const navigate = useNavigate();
+
+  const buttonLabels = [
     "Pabaya",
-    "Saman",
+    "Gemba",
+    "Monkey",
+    "Dog",
+    "Koka",
   ];
+
+  const handleButtonClick = (label) => {
+    navigate("/BoatRegistrationPage", { state: { label } });
+  };
 
   return (
     <div
@@ -40,8 +47,10 @@ const BoatOwnerDetails = () => {
             width="60"
             height="60"
             className="rounded-circle"
+            style={{ cursor: "pointer" }}
+            onClick={() => navigate("/Dashboard")}
           />
-          <h2 className="text-center flex-grow-1 fw-bold m-0">Registration panel</h2>
+          <h2 className="text-center flex-grow-1 fw-bold m-0"> Boat Owners</h2>
           <img
             src={profileImage}
             alt="Profile"
@@ -52,18 +61,18 @@ const BoatOwnerDetails = () => {
         </div>
 
         <div className="d-flex flex-column">
-          {requests.map((request, index) => (
-            <div
+          {buttonLabels.map((label, index) => (
+            <button
               key={index}
-              className="text-center fw-semibold py-3 px-3 rounded-pill mb-3"
+              className="btn btn-secondary text-center fw-semibold py-3 px-2 rounded-pill mb-3 w-100"
               style={{
-                backgroundColor: "#e0e0e0",
                 fontFamily: "'Georgia', serif",
                 fontSize: "1.2rem",
               }}
+              onClick={() => handleButtonClick(label)}
             >
-              {request}
-            </div>
+              {label}
+            </button>
           ))}
         </div>
       </div>

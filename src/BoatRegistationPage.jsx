@@ -36,11 +36,11 @@ return (
                 <div className="card-body">
                     <form>
                         {[
-                            { label: "Name", id: "name", placeholder: "Enter your name" },
-                            { label: "ID Number", id: "idNumber", placeholder: "Enter your ID number" },
-                            { label: "Phone Number", id: "phoneNumber", placeholder: "Enter your phone number" },
-                            { label: "Email", id: "email", placeholder: "Enter your email" },
-                            { label: "Address", id: "address", placeholder: "Enter your address" },
+                            { label: "Name", id: "name", value: "John Doe" },
+                            { label: "ID Number", id: "idNumber", value: "123456789" },
+                            { label: "Phone Number", id: "phoneNumber", value: "+1234567890" },
+                            { label: "Email", id: "email", value: "john.doe@example.com" },
+                            { label: "Address", id: "address", value: "123 Main St, City, Country" },
                         ].map((field) => (
                             <div className="row mb-3" key={field.id}>
                                 <label htmlFor={field.id} className="col-sm-3 col-form-label fw-bold">
@@ -49,12 +49,13 @@ return (
                                 <div className="col-sm-9">
                                     <div className="input-group">
                                         <span className="input-group-text">:</span>
-                                        <input
-                                            type="text"
-                                            className="form-control"
+                                        <span
+                                            className="form-control bg-light"
                                             id={field.id}
-                                            placeholder={field.placeholder}
-                                        />
+                                            style={{ border: "none" }}
+                                        >
+                                            {field.value}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
