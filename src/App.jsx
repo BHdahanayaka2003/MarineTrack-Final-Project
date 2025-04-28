@@ -15,7 +15,11 @@ function App() {
     
     <Routes>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       <Route path="/" element={<FirstPage />} />
+=======
+      {/* <Route path="/" element={<HomePage />} />
+>>>>>>> Stashed changes
 =======
       {/* <Route path="/" element={<HomePage />} />
 >>>>>>> Stashed changes
