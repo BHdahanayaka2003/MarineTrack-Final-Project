@@ -4,6 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import profileImage from "./profile.png";
 import logoImage from "./logo.png";
 import backgroundImage from "./background.jpeg";
+import "./Dashboard.css"; // Custom CSS for additional styles
 // Import icons from a compatible library (Bootstrap icons are available via CDN)
 // Add this to your index.html: <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
