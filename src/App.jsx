@@ -14,19 +14,10 @@ function App() {
     // </div>
     
     <Routes>
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-      <Route path="/" element={<FirstPage />} />
-=======
-      {/* <Route path="/" element={<HomePage />} />
->>>>>>> Stashed changes
-=======
-      {/* <Route path="/" element={<HomePage />} />
->>>>>>> Stashed changes
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/dashboard" element={<Dashboard />} /> */}
-      <Route path="/" element={<Dashboard />} />
-      <Route path='/BoatRegister' element={<BoatRegister />} />
+{/* <Route path="/" element={<FirstPage />} />
+<Route path="/login" element={<LoginPage />} /> */}
+<Route path="/" element={<Dashboard />} />
+<Route path="/BoatRegister" element={<BoatRegister />} />
     </Routes>
   );
 }
