@@ -97,6 +97,14 @@ return (
                             >
                                 Deny
                             </button>
+                            
+         
+                        </div>
+                         {/* Footer */}
+                        <div className="mt-4 pt-3 border-top text-center">
+                            <p className="text-muted mb-0 small">
+                            Fisheries Management System • v2.1.0 • © 2025
+                            </p>
                         </div>
                     </form>
                 </div>

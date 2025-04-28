@@ -8,6 +8,9 @@ import BoatRegister from './BoatRegister';
 import BoatOwnerDetails from './BoatOwnerDetails';
 import HandleFisherman from './HandleFisherman';
 import BoatRegistrationPage from './BoatRegistationPage';
+import OwnerDetails from './OwnerDetails';
+import FishermanDetails from './FishermanDetails';
+import OwnerRegister from './OwnerRegister';
 function App() {
   return (
 
@@ -18,7 +21,10 @@ function App() {
       <Route path="/BoatRegister" element={<BoatRegister />} />
       <Route path="/BoatRegistrationPage" element={<BoatRegistrationPage />} />
       <Route path="/BoatOwnerDetails" element={<BoatOwnerDetails />} />
+      <Route path="/OwnerDetails" element={<OwnerDetails />} />
       <Route path="/HandleFisherman" element={<HandleFisherman />} />
+      <Route path="/FishermanDetails" element={<FishermanDetails />} />
+      <Route path="/OwnerRegister" element={<OwnerRegister />} />
     </Routes>
   );
 }

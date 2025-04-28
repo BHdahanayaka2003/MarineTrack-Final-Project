@@ -30,7 +30,7 @@ const Dashboard = () => {
     { 
       label: "Handle Fisherman ID", 
       color: "success", 
-      path: "/HandleFisherman",
+      path: "/HandleFishern",
       icon: "bi-person-badge",
       description: "Process fisherman identification cards"
     },
@@ -44,7 +44,7 @@ const Dashboard = () => {
     { 
       label: "Owner Register", 
       color: "primary", 
-      path: "/BoatOwnerDetails",
+      path: "/OwnerRegister",
       icon: "bi-person-plus",
       description: "Add new boat owners to the system"
     },
@@ -58,7 +58,7 @@ const Dashboard = () => {
     { 
       label: "Display Fisherman Details", 
       color: "secondary", 
-      path: "/fisherman-details",
+      path: "/HandleFisherman",
       icon: "bi-info-circle",
       description: "Access detailed fisherman records"
     },
@@ -79,7 +79,7 @@ const Dashboard = () => {
       <div className="container">
         <div 
           className="bg-light bg-opacity-85 p-4 p-md-5 rounded-4 shadow-lg" 
-          style={{ backdropFilter: "blur(10px)" }}
+          style={{ backdropFilter: "blur(0.2px)" }}
         >
           {/* Header with improved styling */}
           <div className="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
