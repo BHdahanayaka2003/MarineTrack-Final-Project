@@ -51,7 +51,7 @@ const Dashboard = () => {
     { 
       label: "Rejected Boat Details", 
       color: "danger", 
-      path: "/rejected-boats",
+      path: "/RejectBoat",
       icon: "bi-x-circle",
       description: "View boats that failed registration"
     },

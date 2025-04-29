@@ -1,12 +1,36 @@
-import React from 'react';
-import { Card, Table, Container } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Card, Table, Container, Button, Form } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import backgroundImage from './background.jpeg'; // Background image
-import logoImage from './logo.png'; // Add your logo image here (make sure the path is correct)
+import backgroundImage from './background.jpeg'; // Ensure this path is correct
+import logoImage from './logo.png'; // Ensure this path is correct
 import { useNavigate } from 'react-router-dom';
 
 const OwnerDetails = () => {
     const navigate = useNavigate();
+
+    // Editable fields (using state)
+    const [ownerData, setOwnerData] = useState({
+        name: 'Sunil',
+        boatName: 'Gamunu Putha',
+        idNumber: '123456789V',
+        boatID: 'CAT 9666',
+        phone: '+94 0114555587',
+        email: 'BenTenison@gmail.com',
+        address: 'America',
+        requirements: 'PDF',
+    });
+
+    const [isEditing, setIsEditing] = useState(false);
+
+    // Handle input changes
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setOwnerData({ ...ownerData, [name]: value });
+    };
+
+    const handleEditToggle = () => {
+        setIsEditing(!isEditing);
+    };
 
     return (
         <div
@@ -27,10 +51,7 @@ const OwnerDetails = () => {
             <Container
                 fluid
                 className="d-flex justify-content-center align-items-center"
-                style={{
-                    height: '100%',
-                    padding: '20px',
-                }}
+                style={{ height: '100%', padding: '20px' }}
             >
                 <Card
                     style={{
@@ -63,70 +84,158 @@ const OwnerDetails = () => {
                             />
                             <h1 className="m-0 w-100 text-center">Information</h1>
                         </div>
+
+                        {/* Edit Button */}
+                        <div className="text-end mb-3">
+                            <Button variant={isEditing ? "success" : "primary"} onClick={handleEditToggle}>
+                                {isEditing ? "Save" : "Edit"}
+                            </Button>
+                        </div>
+
+                        {/* Editable Table */}
                         <Table borderless responsive>
                             <tbody>
                                 <tr>
                                     <td className="fw-bold text-secondary">Name</td>
                                     <td>:</td>
-                                    <td>Sunil</td>
+                                    <td>
+                                        {isEditing ? (
+                                            <Form.Control
+                                                type="text"
+                                                name="name"
+                                                value={ownerData.name}
+                                                onChange={handleChange}
+                                            />
+                                        ) : (
+                                            ownerData.name
+                                        )}
+                                    </td>
                                     <td className="fw-bold text-secondary">Boat Name</td>
                                     <td>:</td>
-                                    <td>Gamunu Putha</td>
+                                    <td>
+                                        {isEditing ? (
+                                            <Form.Control
+                                                type="text"
+                                                name="boatName"
+                                                value={ownerData.boatName}
+                                                onChange={handleChange}
+                                            />
+                                        ) : (
+                                            ownerData.boatName
+                                        )}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td className="fw-bold text-secondary">ID Number</td>
                                     <td>:</td>
-                                    <td>123456789V</td>
+                                    <td>
+                                        {isEditing ? (
+                                            <Form.Control
+                                                type="text"
+                                                name="idNumber"
+                                                value={ownerData.idNumber}
+                                                onChange={handleChange}
+                                            />
+                                        ) : (
+                                            ownerData.idNumber
+                                        )}
+                                    </td>
                                     <td className="fw-bold text-secondary">Boat ID</td>
                                     <td>:</td>
-                                    <td>CAT 9666</td>
+                                    <td>
+                                        {isEditing ? (
+                                            <Form.Control
+                                                type="text"
+                                                name="boatID"
+                                                value={ownerData.boatID}
+                                                onChange={handleChange}
+                                            />
+                                        ) : (
+                                            ownerData.boatID
+                                        )}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td className="fw-bold text-secondary">Phone Number</td>
                                     <td>:</td>
-                                    <td>+94 0114555587</td>
-                                    <td colSpan="3"></td>
+                                    <td colSpan="4">
+                                        {isEditing ? (
+                                            <Form.Control
+                                                type="text"
+                                                name="phone"
+                                                value={ownerData.phone}
+                                                onChange={handleChange}
+                                            />
+                                        ) : (
+                                            ownerData.phone
+                                        )}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td className="fw-bold text-secondary">Email</td>
                                     <td>:</td>
-                                    <td>BenTenison@gmail.com</td>
-                                    <td colSpan="3"></td>
+                                    <td colSpan="4">
+                                        {isEditing ? (
+                                            <Form.Control
+                                                type="email"
+                                                name="email"
+                                                value={ownerData.email}
+                                                onChange={handleChange}
+                                            />
+                                        ) : (
+                                            ownerData.email
+                                        )}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td className="fw-bold text-secondary">Address</td>
                                     <td>:</td>
-                                    <td>America</td>
-                                    <td colSpan="3"></td>
+                                    <td colSpan="4">
+                                        {isEditing ? (
+                                            <Form.Control
+                                                type="text"
+                                                name="address"
+                                                value={ownerData.address}
+                                                onChange={handleChange}
+                                            />
+                                        ) : (
+                                            ownerData.address
+                                        )}
+                                    </td>
                                 </tr>
                             </tbody>
                         </Table>
 
-                        {/* Requirements Card */}
+                        {/* Requirements */}
                         <Card className="bg-light mt-3">
                             <Card.Body>
                                 <Card.Text className="mb-0">
                                     <strong>Requirements</strong><br />
-                                    PDF
+                                    {isEditing ? (
+                                        <Form.Control
+                                            type="text"
+                                            name="requirements"
+                                            value={ownerData.requirements}
+                                            onChange={handleChange}
+                                        />
+                                    ) : (
+                                        ownerData.requirements
+                                    )}
                                 </Card.Text>
-         
                             </Card.Body>
-                            
                         </Card>
                     </Card.Body>
-                        {/* Footer */}
-                        <div className="mt-4 pt-3 border-top text-center">
+
+                    {/* Footer */}
+                    <div className="mt-4 pt-3 border-top text-center">
                         <p className="text-muted mb-0 small">
-                        Fisheries Management System • v2.1.0 • © 2025
+                            Fisheries Management System • v2.1.0 • © 2025
                         </p>
                     </div>
                 </Card>
             </Container>
         </div>
-        
     );
 };
 
-
 export default OwnerDetails;
-
