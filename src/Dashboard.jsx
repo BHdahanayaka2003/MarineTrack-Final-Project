@@ -1,17 +1,35 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import "bootstrap/dist/css/bootstrap.min.css";
 import profileImage from "./profile.png";
 import logoImage from "./logo.png";
 import backgroundImage from "./background.jpeg";
-import "./Dashboard.css"; // Custom CSS for additional styles
-// Import icons from a compatible library (Bootstrap icons are available via CDN)
-// Add this to your index.html: <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [userEmail, setUserEmail] = useState("Administrator");
+  const [loading, setLoading] = useState(true);
 
-  // Enhanced buttons with icons and descriptions
+  // Check auth state when component mounts
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Use email from location state if available, otherwise from auth
+        const email = location.state?.userEmail || user.email;
+        setUserEmail(email);
+      } else {
+        // If no user is logged in, redirect to login
+        navigate('/');
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [navigate, location.state]);
+
   const buttons = [
     { 
       label: "Boat Register", 
@@ -30,7 +48,7 @@ const Dashboard = () => {
     { 
       label: "Handle Fisherman ID", 
       color: "success", 
-      path: "/HandleFishermanID",
+      path: "/fisherman-id",
       icon: "bi-person-badge",
       description: "Process fisherman identification cards"
     },
@@ -44,25 +62,35 @@ const Dashboard = () => {
     { 
       label: "Owner Register", 
       color: "primary", 
-      path: "/OwnerRegister",
+      path: "/BoatOwnerDetails",
       icon: "bi-person-plus",
       description: "Add new boat owners to the system"
     },
     { 
       label: "Rejected Boat Details", 
       color: "danger", 
-      path: "/RejectBoat",
+      path: "/rejected-boats",
       icon: "bi-x-circle",
       description: "View boats that failed registration"
     },
     { 
       label: "Display Fisherman Details", 
       color: "secondary", 
-      path: "/HandleFisherman",
+      path: "/fisherman-details",
       icon: "bi-info-circle",
       description: "Access detailed fisherman records"
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -79,9 +107,8 @@ const Dashboard = () => {
       <div className="container">
         <div 
           className="bg-light bg-opacity-85 p-4 p-md-5 rounded-4 shadow-lg" 
-          style={{ backdropFilter: "blur(0.2px)" }}
+          style={{ backdropFilter: "blur(10px)" }}
         >
-          {/* Header with improved styling */}
           <div className="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
             <div className="d-flex align-items-center">
               <img 
@@ -91,7 +118,6 @@ const Dashboard = () => {
                 height="60" 
                 className="me-3"
               />
-              {/* <h2 className="text-primary mb-0 d-none d-md-block">Fisheries Management System</h2> */}
             </div>
             <h1 className="text-center flex-grow-1 fw-bold text-uppercase d-none d-md-block">
               Dashboard
@@ -101,7 +127,7 @@ const Dashboard = () => {
             </h1>
             <div className="d-flex align-items-center">
               <div className="text-end me-3 d-none d-md-block">
-                <h6 className="mb-0">Administrator</h6>
+                <h6 className="mb-0">{userEmail}</h6>
                 <small className="text-muted">Online</small>
               </div>
               <img 
@@ -114,7 +140,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Enhanced cards section */}
           <div className="row g-4">
             {buttons.map((btn, index) => (
               <div className="col-12 col-md-6 col-lg-4" key={index}>
@@ -143,7 +168,6 @@ const Dashboard = () => {
             ))}
           </div>
 
-          {/* Footer */}
           <div className="mt-4 pt-3 border-top text-center">
             <p className="text-muted mb-0 small">
               Fisheries Management System • v2.1.0 • © 2025
@@ -154,8 +178,5 @@ const Dashboard = () => {
     </div>
   );
 };
-
-// Import the CSS file for hover-shadow styles
-import "./Dashboard.css";
 
 export default Dashboard;
