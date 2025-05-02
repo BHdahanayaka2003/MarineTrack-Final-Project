@@ -44,6 +44,8 @@ const RequestPanel = () => {
   const [sortConfig, setSortConfig] = useState({ key: "requestDate", direction: "desc" });
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [actionType, setActionType] = useState(null);
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
   
   const pdfModalRef = useRef(null);
 
@@ -68,8 +70,8 @@ const RequestPanel = () => {
             serialNumber: data.serialNumber || "N/A",
             nic: data.nic || "N/A",
             address: data.address || "N/A",
-            status: "Pending", // Default status
-            requestDate: new Date().toLocaleDateString()
+            status: data.status || "Pending", // Use status from Firestore if available
+            requestDate: data.requestDate || new Date().toLocaleDateString()
           };
         });
         
@@ -85,9 +87,41 @@ const RequestPanel = () => {
     fetchBoatData();
   }, []);
 
+  // Convert Google Drive URL to direct download URL
+  const convertGoogleDriveUrl = (url) => {
+    if (!url) return null;
+    
+    // Check if it's a Google Drive URL
+    if (url.includes("drive.google.com")) {
+      // Extract the file ID
+      let fileId = "";
+      
+      // Handle different Google Drive URL formats
+      if (url.includes("drive.google.com/file/d/")) {
+        // Format: https://drive.google.com/file/d/FILE_ID/view
+        fileId = url.split("drive.google.com/file/d/")[1].split("/")[0];
+      } else if (url.includes("drive.google.com/open?id=")) {
+        // Format: https://drive.google.com/open?id=FILE_ID
+        fileId = url.split("drive.google.com/open?id=")[1].split("&")[0];
+      } else if (url.includes("docs.google.com/document/d/")) {
+        // Format: https://docs.google.com/document/d/FILE_ID/edit
+        fileId = url.split("docs.google.com/document/d/")[1].split("/")[0];
+      }
+      
+      if (fileId) {
+        // Create a direct download link
+        return `https://drive.google.com/uc?export=download&id=${fileId}`;
+      }
+    }
+    
+    // If not a Google Drive URL or couldn't extract ID, return original URL
+    return url;
+  };
+
   // PDF functions
   const onDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
+    setPdfLoading(false);
   };
 
   const changePage = (offset) => {
@@ -100,6 +134,13 @@ const RequestPanel = () => {
   // Handle document view
   const openPdfViewer = () => {
     if (selectedRequest && selectedRequest.document) {
+      setPdfLoading(true);
+      setCurrentPage(1);
+      setNumPages(null);
+      
+      // Convert the URL if it's a Google Drive URL
+      const convertedUrl = convertGoogleDriveUrl(selectedRequest.document);
+      setPdfUrl(convertedUrl);
       setShowPdfViewer(true);
     } else {
       toast.error("No document available to view");
@@ -109,7 +150,8 @@ const RequestPanel = () => {
   // Handle document download
   const handleDownloadDocument = () => {
     if (selectedRequest && selectedRequest.document) {
-      window.open(selectedRequest.document, '_blank');
+      const downloadUrl = convertGoogleDriveUrl(selectedRequest.document);
+      window.open(downloadUrl, '_blank');
     } else {
       toast.error("No document available to download");
     }
@@ -118,6 +160,7 @@ const RequestPanel = () => {
   const handleRequestClick = (request) => {
     setSelectedRequest(request);
     setCurrentPage(1);
+    setPdfUrl(null);
   };
 
   const initiateApproval = () => {
@@ -218,6 +261,7 @@ const RequestPanel = () => {
     const handleClickOutside = (event) => {
       if (pdfModalRef.current && !pdfModalRef.current.contains(event.target)) {
         setShowPdfViewer(false);
+        setPdfUrl(null);
       }
     };
 
@@ -229,6 +273,13 @@ const RequestPanel = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showPdfViewer]);
+
+  // Handle PDF loading errors
+  const onDocumentLoadError = (error) => {
+    console.error("PDF loading error:", error);
+    setPdfLoading(false);
+    toast.error("Failed to load PDF. The document might be inaccessible or in an unsupported format.");
+  };
 
   if (loading) {
     return (
@@ -264,7 +315,7 @@ const RequestPanel = () => {
       <ToastContainer position="top-right" autoClose={3000} />
       
       {/* PDF Viewer Modal */}
-      {showPdfViewer && selectedRequest?.document && (
+      {showPdfViewer && (
         <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" 
              style={{ backgroundColor: "rgba(0,0,0,0.8)", zIndex: 1050 }}>
           <div 
@@ -274,46 +325,92 @@ const RequestPanel = () => {
           >
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h5 className="m-0">Document Viewer - {selectedRequest.boatName}</h5>
-              <button className="btn-close" onClick={() => setShowPdfViewer(false)}></button>
+              <button className="btn-close" onClick={() => {
+                setShowPdfViewer(false);
+                setPdfUrl(null);
+              }}></button>
             </div>
             
-            <div className="text-center mb-3">
-              <div className="btn-group">
-                <button 
-                  className="btn btn-sm btn-outline-primary" 
-                  disabled={currentPage <= 1} 
-                  onClick={() => changePage(-1)}
-                >
-                  Previous
-                </button>
-                <button 
-                  className="btn btn-sm btn-outline-primary" 
-                  disabled={currentPage >= numPages} 
-                  onClick={() => changePage(1)}
-                >
-                  Next
-                </button>
-              </div>
-              <span className="ms-3">
-                Page {currentPage} of {numPages || '?'}
-              </span>
-            </div>
-            
-            <div className="border rounded p-2 d-flex justify-content-center">
-              <Document
-                file={selectedRequest.document}
-                onLoadSuccess={onDocumentLoadSuccess}
-                loading={<div className="text-center my-5"><div className="spinner-border"></div></div>}
-                error={<div className="alert alert-danger">Failed to load PDF. Check the document URL.</div>}
-              >
-                <Page 
-                  pageNumber={currentPage} 
-                  scale={1.2} 
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                />
-              </Document>
-            </div>
+            {pdfUrl && (
+              <>
+                <div className="text-center mb-3">
+                  <div className="btn-group">
+                    <button 
+                      className="btn btn-sm btn-outline-primary" 
+                      disabled={currentPage <= 1} 
+                      onClick={() => changePage(-1)}
+                    >
+                      Previous
+                    </button>
+                    <button 
+                      className="btn btn-sm btn-outline-primary" 
+                      disabled={currentPage >= numPages} 
+                      onClick={() => changePage(1)}
+                    >
+                      Next
+                    </button>
+                  </div>
+                  <span className="ms-3">
+                    Page {currentPage} of {numPages || '?'}
+                  </span>
+                </div>
+                
+                <div className="border rounded p-2 d-flex justify-content-center">
+                  {pdfLoading && (
+                    <div className="text-center my-5">
+                      <div className="spinner-border"></div>
+                      <p className="mt-2">Loading document...</p>
+                    </div>
+                  )}
+                  
+                  <Document
+                    file={pdfUrl}
+                    onLoadSuccess={onDocumentLoadSuccess}
+                    onLoadError={onDocumentLoadError}
+                    loading={<div className="text-center my-5"><div className="spinner-border"></div></div>}
+                    error={
+                      <div className="alert alert-danger my-4">
+                        <h5>Failed to load PDF</h5>
+                        <p>This could be due to one of the following reasons:</p>
+                        <ul>
+                          <li>The document URL is invalid or requires authentication</li>
+                          <li>Google Drive permissions are not set to "Anyone with the link can view"</li>
+                          <li>The document might be in a format not supported by the PDF viewer</li>
+                        </ul>
+                        <p>Try downloading the document instead.</p>
+                        <button 
+                          className="btn btn-outline-primary"
+                          onClick={handleDownloadDocument}
+                        >
+                          <FiDownload className="me-1" /> Download Document
+                        </button>
+                      </div>
+                    }
+                  >
+                    <Page 
+                      pageNumber={currentPage} 
+                      scale={1.2} 
+                      renderTextLayer={false}
+                      renderAnnotationLayer={false}
+                    />
+                  </Document>
+                </div>
+                
+                <div className="mt-3 text-center">
+                  <small className="text-muted">
+                    If you have trouble viewing this document, try downloading it instead.
+                  </small>
+                  <div className="mt-2">
+                    <button 
+                      className="btn btn-sm btn-outline-secondary"
+                      onClick={handleDownloadDocument}
+                    >
+                      <FiDownload className="me-1" /> Download Document
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
