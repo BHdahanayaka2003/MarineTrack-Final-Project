@@ -1,23 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { initializeApp } from "firebase/app";
 import './loginpage.css';
 import logo from './logo.png';
-
-// Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyCRjW_lsIwKlL99xi0hU2_x2xWVSTBSkTg",
-    authDomain: "finalproject-4453c.firebaseapp.com",
-    projectId: "finalproject-4453c",
-    storageBucket: "finalproject-4453c.appspot.com",
-    messagingSenderId: "866850090007",
-    appId: "1:866850090007:web:111a4fcef7be69de0a8052",
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+import { auth } from './Backend/Firebase'; // Import auth from Firebase.js
+import { signInWithEmailAndPassword } from 'firebase/auth'; // Import Firebase auth method
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -32,21 +18,37 @@ function LoginPage() {
     setIsLoading(true);
     
     try {
+      // Check for empty fields before making API call
+      if (!email || !password) {
+        setError('Email and password are required.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Sign in with email and password
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      console.log('Login successful!');
-      // Pass user email to dashboard
-      navigate('/dashboard', { state: { userEmail: user.email } });
+      console.log('Login successful!', user);
+
+      // Check if the user is the admin
+      if (email === 'admin@gmail.com') {
+        // Navigate to admin dashboard if the email is admin@gmail.com
+        navigate('/admindashboard', { state: { userEmail: user.email } });
+      } else {
+        // Otherwise, navigate to the regular user dashboard
+        navigate('/dashboard', { state: { userEmail: user.email } });
+      }
     } catch (err) {
       const errorMessage = getErrorMessage(err.code);
+      console.error('Login error:', err);  // Log error details to the console
       setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   const getErrorMessage = (errorCode) => {
-    switch(errorCode) {
+    switch (errorCode) {
       case 'auth/invalid-email':
         return 'Invalid email address format.';
       case 'auth/user-disabled':
