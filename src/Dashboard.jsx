@@ -48,7 +48,7 @@ const Dashboard = () => {
     { 
       label: "Handle Fisherman ID", 
       color: "success", 
-      path: "/fisherman-id",
+      path: "/HandleFishermanID",
       icon: "bi-person-badge",
       description: "Process fisherman identification cards"
     },
@@ -69,14 +69,14 @@ const Dashboard = () => {
     { 
       label: "Rejected Boat Details", 
       color: "danger", 
-      path: "/rejected-boats",
+      path: "/RejectBoat",
       icon: "bi-x-circle",
       description: "View boats that failed registration"
     },
     { 
       label: "Display Fisherman Details", 
       color: "secondary", 
-      path: "/fisherman-details",
+      path: "/FishermanDetails",
       icon: "bi-info-circle",
       description: "Access detailed fisherman records"
     },
