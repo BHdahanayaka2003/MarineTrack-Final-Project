@@ -44,43 +44,8 @@ const RequestPanel = () => {
   const [sortConfig, setSortConfig] = useState({ key: "requestDate", direction: "desc" });
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [actionType, setActionType] = useState(null);
-  const [pdfUrl, setPdfUrl] = useState(null);
-  const [isLoadingPdf, setIsLoadingPdf] = useState(false);
-  const [pdfError, setPdfError] = useState(null);
   
   const pdfModalRef = useRef(null);
-
-  // Function to properly convert Google Drive link to embed link
-  const convertGoogleDriveLink = (url) => {
-    if (!url) return null;
-    
-    // Check if it's a Google Drive link
-    if (url.includes('drive.google.com/file/d/')) {
-      // Extract the file ID
-      const fileIdMatch = url.match(/\/d\/([^\/]+)/);
-      if (fileIdMatch && fileIdMatch[1]) {
-        const fileId = fileIdMatch[1];
-        // Return the Google Drive viewer URL which handles PDF display
-        return `https://drive.google.com/file/d/${fileId}/preview`;
-      }
-    }
-    // Return original URL if not a Google Drive link or couldn't extract ID
-    return url;
-  };
-
-  // Function to get direct download link
-  const getDownloadLink = (url) => {
-    if (!url) return null;
-    
-    if (url.includes('drive.google.com/file/d/')) {
-      const fileIdMatch = url.match(/\/d\/([^\/]+)/);
-      if (fileIdMatch && fileIdMatch[1]) {
-        const fileId = fileIdMatch[1];
-        return `https://drive.google.com/uc?export=download&id=${fileId}`;
-      }
-    }
-    return url;
-  };
 
   useEffect(() => {
     const fetchBoatData = async () => {
@@ -103,8 +68,8 @@ const RequestPanel = () => {
             serialNumber: data.serialNumber || "N/A",
             nic: data.nic || "N/A",
             address: data.address || "N/A",
-            status: data.status || "Pending", // Use status from database if available
-            requestDate: data.requestDate || new Date().toLocaleDateString()
+            status: "Pending", // Default status
+            requestDate: new Date().toLocaleDateString()
           };
         });
         
@@ -123,8 +88,6 @@ const RequestPanel = () => {
   // PDF functions
   const onDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
-    setIsLoadingPdf(false);
-    setPdfError(null);
   };
 
   const changePage = (offset) => {
@@ -137,12 +100,7 @@ const RequestPanel = () => {
   // Handle document view
   const openPdfViewer = () => {
     if (selectedRequest && selectedRequest.document) {
-      setIsLoadingPdf(true);
-      setPdfError(null);
-      setPdfUrl(convertGoogleDriveLink(selectedRequest.document));
       setShowPdfViewer(true);
-      // Reset current page to 1 when opening a new document
-      setCurrentPage(1);
     } else {
       toast.error("No document available to view");
     }
@@ -151,8 +109,7 @@ const RequestPanel = () => {
   // Handle document download
   const handleDownloadDocument = () => {
     if (selectedRequest && selectedRequest.document) {
-      // Use the download link for download
-      window.open(getDownloadLink(selectedRequest.document), '_blank');
+      window.open(selectedRequest.document, '_blank');
     } else {
       toast.error("No document available to download");
     }
@@ -320,55 +277,42 @@ const RequestPanel = () => {
               <button className="btn-close" onClick={() => setShowPdfViewer(false)}></button>
             </div>
             
-            {/* Google Drive Embed Viewer */}
-            <div className="border rounded p-2 d-flex justify-content-center">
-              <iframe
-                src={pdfUrl}
-                width="100%"
-                height="600px"
-                frameBorder="0"
-                title={`${selectedRequest.boatName} Document`}
-                allowFullScreen
-                style={{ display: pdfUrl ? 'block' : 'none' }}
-              ></iframe>
-              
-              {/* Fallback for non-Google Drive PDFs */}
-              {!pdfUrl?.includes('drive.google.com') && (
-                <Document
-                  file={pdfUrl}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                  loading={<div className="text-center my-5"><div className="spinner-border"></div></div>}
-                  error={
-                    <div className="alert alert-danger">
-                      <p>Failed to load PDF. There might be an issue with the document URL.</p>
-                      <p>Try downloading the document directly using the download button.</p>
-                      <button 
-                        className="btn btn-outline-primary mt-2"
-                        onClick={() => window.open(getDownloadLink(selectedRequest.document), '_blank')}
-                      >
-                        Direct Download
-                      </button>
-                    </div>
-                  }
+            <div className="text-center mb-3">
+              <div className="btn-group">
+                <button 
+                  className="btn btn-sm btn-outline-primary" 
+                  disabled={currentPage <= 1} 
+                  onClick={() => changePage(-1)}
                 >
-                  <Page 
-                    pageNumber={currentPage} 
-                    scale={1.2} 
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                  />
-                </Document>
-              )}
+                  Previous
+                </button>
+                <button 
+                  className="btn btn-sm btn-outline-primary" 
+                  disabled={currentPage >= numPages} 
+                  onClick={() => changePage(1)}
+                >
+                  Next
+                </button>
+              </div>
+              <span className="ms-3">
+                Page {currentPage} of {numPages || '?'}
+              </span>
             </div>
             
-            {/* Download Button */}
-            <div className="mt-3 text-center">
-              <button 
-                className="btn btn-primary"
-                onClick={handleDownloadDocument}
+            <div className="border rounded p-2 d-flex justify-content-center">
+              <Document
+                file={selectedRequest.document}
+                onLoadSuccess={onDocumentLoadSuccess}
+                loading={<div className="text-center my-5"><div className="spinner-border"></div></div>}
+                error={<div className="alert alert-danger">Failed to load PDF. Check the document URL.</div>}
               >
-                <FiDownload className="me-1" /> Download Document
-              </button>
+                <Page 
+                  pageNumber={currentPage} 
+                  scale={1.2} 
+                  renderTextLayer={false}
+                  renderAnnotationLayer={false}
+                />
+              </Document>
             </div>
           </div>
         </div>
