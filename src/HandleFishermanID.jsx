@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import backgroundImage from "./background.jpeg"; // Assuming these paths are correct
+import backgroundImage from "./background.jpeg";
 import logoImage from "./logo.png";
 import profileImage from "./profile.png";
 import { useNavigate } from "react-router-dom";
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore, collection, getDocs, doc, updateDoc } from "firebase/firestore";
-import { FiEye, FiEdit, FiCheckCircle, FiXCircle, FiUser } from "react-icons/fi";
+import { FiEye, FiEdit, FiCheckCircle, FiXCircle, FiUser, FiAlertTriangle } from "react-icons/fi";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -34,9 +34,11 @@ const FishermanPanel = () => {
   const [selectedFisherman, setSelectedFisherman] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
-  const [sortConfig, setSortConfig] = useState({ key: "fishermenName", direction: "asc" });
+  const [sortConfig, setSortConfig] = useState({ key: "name", direction: "asc" });
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [actionType, setActionType] = useState(null);
+  const [actionReason, setActionReason] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const fetchFishermenData = async () => {
@@ -57,7 +59,8 @@ const FishermanPanel = () => {
             nic: data.nic || "N/A",
             fishermenNIC: data.fishermenNIC || "N/A",
             boatId: data.boatId || "N/A",
-            status: data.status || "Active", // Default status if not available
+            status: data.status || "Pending", // Default status is Pending
+            statusReason: data.statusReason || "",
             registrationDate: data.registrationDate ? 
               (data.registrationDate instanceof Date ? data.registrationDate.toLocaleDateString() : new Date(data.registrationDate).toLocaleDateString()) 
               : new Date().toLocaleDateString()
@@ -82,11 +85,13 @@ const FishermanPanel = () => {
 
   const initiateApproval = () => {
     setActionType("approve");
+    setActionReason("");
     setShowConfirmation(true);
   };
 
   const initiateRejection = () => {
     setActionType("reject");
+    setActionReason("");
     setShowConfirmation(true);
   };
 
@@ -94,31 +99,42 @@ const FishermanPanel = () => {
     if (!selectedFisherman || !actionType) return;
 
     try {
+      setIsProcessing(true);
+      
       const newStatus = actionType === "approve" ? "Active" : "Inactive";
       
       // Update in Firestore
       const fishermanRef = doc(db, "fishermen", selectedFisherman.id);
       await updateDoc(fishermanRef, {
-        status: newStatus
+        status: newStatus,
+        statusReason: actionReason,
+        statusUpdatedAt: new Date(),
+        statusUpdatedBy: auth.currentUser ? auth.currentUser.email : "Admin"
       });
       
       // Update local state
       setFishermen(fishermen.map(fish => 
-        fish.id === selectedFisherman.id ? {...fish, status: newStatus} : fish
+        fish.id === selectedFisherman.id ? 
+          {...fish, status: newStatus, statusReason: actionReason} : 
+          fish
       ));
       
-      toast.success(`Fisherman status set to ${newStatus.toLowerCase()} successfully`);
-      setSelectedFisherman(prev => ({...prev, status: newStatus}));
+      toast.success(`Fisherman ${actionType === "approve" ? "approved" : "rejected"} successfully`);
+      setSelectedFisherman(prev => ({...prev, status: newStatus, statusReason: actionReason}));
       setShowConfirmation(false);
+      setActionReason("");
+      setIsProcessing(false);
     } catch (err) {
       console.error("Error updating status:", err);
-      toast.error(`Failed to update fisherman status. Please try again.`);
+      toast.error(`Failed to ${actionType} fisherman. Please try again.`);
+      setIsProcessing(false);
     }
   };
 
   const cancelAction = () => {
     setShowConfirmation(false);
     setActionType(null);
+    setActionReason("");
   };
 
   const handleBack = () => {
@@ -129,7 +145,8 @@ const FishermanPanel = () => {
     switch(status) {
       case 'Active': return 'bg-success';
       case 'Inactive': return 'bg-danger';
-      default: return 'bg-warning';
+      case 'Pending': return 'bg-warning';
+      default: return 'bg-secondary';
     }
   };
 
@@ -221,25 +238,59 @@ const FishermanPanel = () => {
     >
       <ToastContainer position="top-right" autoClose={3000} />
       
-      {/* Confirmation Modal */}
+      {/* Enhanced Confirmation Modal with Reason Field */}
       {showConfirmation && (
         <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" 
              style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1050 }}>
-          <div className="bg-white rounded-4 p-4 shadow" style={{ maxWidth: "400px" }}>
-            <h5 className="mb-3">Confirm Action</h5>
+          <div className="bg-white rounded-4 p-4 shadow" style={{ maxWidth: "500px", width: "90%" }}>
+            <h5 className="mb-3 d-flex align-items-center">
+              {actionType === "approve" ? (
+                <><FiCheckCircle className="text-success me-2" size={24} /> Approve Fisherman</>
+              ) : (
+                <><FiXCircle className="text-danger me-2" size={24} /> Reject Fisherman</>
+              )}
+            </h5>
+            
             <p>
-              Are you sure you want to set the fisherman {selectedFisherman?.name || 'this fisherman'} 
-              to {actionType === "approve" ? "active" : "inactive"}?
+              You are about to {actionType === "approve" ? "approve" : "reject"} fisherman registration for:
+              <strong className="d-block mt-2">{selectedFisherman?.name}</strong>
             </p>
+            
+            <div className="mb-3 mt-4">
+              <label htmlFor="actionReason" className="form-label">Reason (optional):</label>
+              <textarea
+                id="actionReason"
+                className="form-control"
+                rows="3"
+                placeholder={`Reason for ${actionType === "approve" ? "approval" : "rejection"}...`}
+                value={actionReason}
+                onChange={(e) => setActionReason(e.target.value)}
+              ></textarea>
+            </div>
+            
             <div className="d-flex justify-content-end gap-2 mt-4">
-              <button className="btn btn-outline-secondary" onClick={cancelAction}>
+              <button 
+                className="btn btn-outline-secondary" 
+                onClick={cancelAction}
+                disabled={isProcessing}
+              >
                 Cancel
               </button>
               <button 
                 className={`btn ${actionType === "approve" ? "btn-success" : "btn-danger"}`}
                 onClick={confirmAction}
+                disabled={isProcessing}
               >
-                {actionType === "approve" ? "Set Active" : "Set Inactive"}
+                {isProcessing ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    {actionType === "approve" ? "Approve" : "Reject"} Fisherman
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -308,8 +359,9 @@ const FishermanPanel = () => {
               onChange={(e) => setFilterStatus(e.target.value)}
             >
               <option value="All">All Statuses</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
+              <option value="Pending">Pending</option>
+              <option value="Active">Approved</option>
+              <option value="Inactive">Rejected</option>
             </select>
           </div>
           <div className="col-md-3 col-lg-5 text-md-end">
@@ -370,14 +422,24 @@ const FishermanPanel = () => {
                       <strong>{selectedFisherman.boatId}</strong>
                     </div>
                     <div className="mb-2">
-                      <small className="text-muted d-block">Registration Status</small>
+                      <small className="text-muted d-block">Status</small>
                       <span className={`badge ${getStatusBadgeClass(selectedFisherman.status)}`}>
                         {selectedFisherman.status}
                       </span>
                     </div>
+                    {selectedFisherman.statusReason && (
+                      <div className="mb-2">
+                        <small className="text-muted d-block">Status Reason</small>
+                        <span className="fst-italic">{selectedFisherman.statusReason}</span>
+                      </div>
+                    )}
                     <div className="mb-2">
                       <small className="text-muted d-block">Registration ID</small>
                       <strong>{selectedFisherman.id}</strong>
+                    </div>
+                    <div className="mb-2">
+                      <small className="text-muted d-block">Registration Date</small>
+                      <strong>{selectedFisherman.registrationDate}</strong>
                     </div>
                   </div>
                 </div>
@@ -391,19 +453,38 @@ const FishermanPanel = () => {
                   <FiEdit className="me-1" /> Edit Details
                 </button>
                 
-                {selectedFisherman.status === "Active" ? (
+                {selectedFisherman.status === "Pending" && (
+                  <>
+                    <button 
+                      className="btn btn-danger"
+                      onClick={initiateRejection}
+                    >
+                      <FiXCircle className="me-1" /> Reject
+                    </button>
+                    <button 
+                      className="btn btn-success"
+                      onClick={initiateApproval}
+                    >
+                      <FiCheckCircle className="me-1" /> Approve
+                    </button>
+                  </>
+                )}
+                
+                {selectedFisherman.status === "Active" && (
                   <button 
                     className="btn btn-danger"
                     onClick={initiateRejection}
                   >
-                    <FiXCircle className="me-1" /> Set Inactive
+                    <FiXCircle className="me-1" /> Deactivate
                   </button>
-                ) : (
+                )}
+                
+                {selectedFisherman.status === "Inactive" && (
                   <button 
                     className="btn btn-success"
                     onClick={initiateApproval}
                   >
-                    <FiCheckCircle className="me-1" /> Set Active
+                    <FiCheckCircle className="me-1" /> Activate
                   </button>
                 )}
               </div>
@@ -411,7 +492,7 @@ const FishermanPanel = () => {
           </div>
         )}
 
-        {/* Fishermen Table */}
+        {/* Fishermen Table with Status Badge */}
         <div className="table-responsive">
           <table className="table table-hover align-middle">
             <thead className="table-dark">
@@ -459,23 +540,52 @@ const FishermanPanel = () => {
             <tbody>
               {getSortedFishermen().length > 0 ? (
                 getSortedFishermen().map((fisherman) => (
-                  <tr key={fisherman.id} style={{ cursor: "pointer" }}>
-                    <td onClick={() => handleFishermanClick(fisherman)}>{fisherman.name}</td>
-                    <td onClick={() => handleFishermanClick(fisherman)}>{fisherman.email}</td>
-                    <td onClick={() => handleFishermanClick(fisherman)}>{fisherman.nic}</td>
-                    <td onClick={() => handleFishermanClick(fisherman)}>{fisherman.boatId}</td>
-                    <td onClick={() => handleFishermanClick(fisherman)}>
+                  <tr key={fisherman.id}>
+                    <td onClick={() => handleFishermanClick(fisherman)} style={{cursor: "pointer"}}>{fisherman.name}</td>
+                    <td onClick={() => handleFishermanClick(fisherman)} style={{cursor: "pointer"}}>{fisherman.email}</td>
+                    <td onClick={() => handleFishermanClick(fisherman)} style={{cursor: "pointer"}}>{fisherman.nic}</td>
+                    <td onClick={() => handleFishermanClick(fisherman)} style={{cursor: "pointer"}}>{fisherman.boatId}</td>
+                    <td onClick={() => handleFishermanClick(fisherman)} style={{cursor: "pointer"}}>
                       <span className={`badge ${getStatusBadgeClass(fisherman.status)}`}>
-                        {fisherman.status}
+                        {fisherman.status === "Active" ? "Approved" : 
+                         fisherman.status === "Inactive" ? "Rejected" : 
+                         fisherman.status}
                       </span>
                     </td>
                     <td>
-                      <button
-                        className="btn btn-sm btn-primary"
-                        onClick={() => handleFishermanClick(fisherman)}
-                      >
-                        <FiEye className="me-1" /> View
-                      </button>
+                      <div className="d-flex gap-2">
+                        <button
+                          className="btn btn-sm btn-primary"
+                          onClick={() => handleFishermanClick(fisherman)}
+                        >
+                          <FiEye className="me-1" /> View
+                        </button>
+                        
+                        {fisherman.status === "Pending" && (
+                          <div className="btn-group btn-group-sm">
+                            <button
+                              className="btn btn-sm btn-success"
+                              onClick={() => {
+                                setSelectedFisherman(fisherman);
+                                initiateApproval();
+                              }}
+                              title="Approve"
+                            >
+                              <FiCheckCircle />
+                            </button>
+                            <button
+                              className="btn btn-sm btn-danger"
+                              onClick={() => {
+                                setSelectedFisherman(fisherman);
+                                initiateRejection();
+                              }}
+                              title="Reject"
+                            >
+                              <FiXCircle />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -495,7 +605,7 @@ const FishermanPanel = () => {
         {/* Footer */}
         <div className="mt-4 pt-3 border-top text-center">
           <p className="text-muted mb-0 small">
-            Fisheries Management System • v2.5.0 • © 2025
+            Fisheries Management System • v2.6.0 • © 2025
           </p>
         </div>
       </div>
