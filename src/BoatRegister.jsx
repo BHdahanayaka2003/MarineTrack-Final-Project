@@ -1,35 +1,36 @@
 import React, { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import backgroundImage from "./background.jpeg"; // Assuming these paths are correct
-import logoImage from "./logo.png";           // Assuming these paths are correct
-import profileImage from "./profile.png";       // Assuming these paths are correct
+import backgroundImage from "./background.jpeg";
+import logoImage from "./logo.png";
+import profileImage from "./profile.png";
 import { useNavigate } from "react-router-dom";
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore, collection, getDocs, doc, updateDoc } from "firebase/firestore";
-import { FiDownload, FiEye, FiCheckCircle, FiXCircle, FiFileText, FiRefreshCcw } from "react-icons/fi"; // Added FiRefreshCcw for retry
+import { getStorage, ref, getDownloadURL } from "firebase/storage"; // Import Firebase Storage
+import { FiDownload, FiEye, FiCheckCircle, FiXCircle, FiFileText, FiRefreshCcw } from "react-icons/fi";
 import { Document, Page, pdfjs } from "react-pdf";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Set up PDF.js worker - Ensure this URL is accessible
-// Using a reliable CDN like jsdelivr or cdnjs is crucial
+// Set up PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
-// Firebase configuration - Ensure this is secure in a real app (e.g., using environment variables)
+// Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCRjW_lsIwKlL99xi0hU2_x2xWVSTBSkTg", // Replace with your actual API Key
-  authDomain: "finalproject-4453c.firebaseapp.com", // Replace with your actual Auth Domain
-  projectId: "finalproject-4453c",                 // Replace with your actual Project ID
-  storageBucket: "finalproject-4453c.appspot.com",   // Replace with your actual Storage Bucket
-  messagingSenderId: "866850090007",          // Replace with your actual Messaging Sender ID
-  appId: "1:866850090007:web:111a4fcef7be69de0a8052", // Replace with your actual App ID
+  apiKey: "AIzaSyCRjW_lsIwKlL99xi0hU2_x2xWVSTBSkTg",
+  authDomain: "finalproject-4453c.firebaseapp.com",
+  projectId: "finalproject-4453c",
+  storageBucket: "finalproject-4453c.appspot.com",
+  messagingSenderId: "866850090007",
+  appId: "1:866850090007:web:111a4fcef7be69de0a8052",
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app); // auth is not used in this component currently, but kept for potential future use
+const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app); // Initialize Firebase Storage
 
 const RequestPanel = () => {
   const navigate = useNavigate();
@@ -47,22 +48,24 @@ const RequestPanel = () => {
   const [actionType, setActionType] = useState(null);
   
   // State specifically for PDF viewing
-  const [pdfSource, setPdfSource] = useState(null); // Use pdfSource instead of pdfUrl for flexibility
+  const [pdfSource, setPdfSource] = useState(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState(null);
+  const [imageSource, setImageSource] = useState(null); // Added state for image
   
   const pdfModalRef = useRef(null);
 
   useEffect(() => {
     const fetchBoatData = async () => {
       try {
-        setLoading(true); // Ensure loading is true when fetching starts
+        setLoading(true);
         const boatCollection = collection(db, "boat");
         const boatSnapshot = await getDocs(boatCollection);
         
-        const boatList = boatSnapshot.docs.map(doc => {
+        const boatList = await Promise.all(boatSnapshot.docs.map(async (doc) => {
           const data = doc.data();
-          // Safely access nested data or use defaults
+          
+          // Process date
           const requestDate = data.requestDate ? 
             (data.requestDate instanceof Date ? data.requestDate.toLocaleDateString() : new Date(data.requestDate).toLocaleDateString()) 
             : new Date().toLocaleDateString();
@@ -73,7 +76,8 @@ const RequestPanel = () => {
             name: data.name || "Unknown",
             boatName: data.boatName || "Unnamed boat",
             contact: data.contact || "No contact",
-            document: data.document || null,
+            documentUrl: data.documentUrl || null, // Use documentUrl field for Firebase Storage
+            imageUrl: data.imageUrl || null, // Use imageUrl field for Firebase Storage
             boatLength: data.boatLength || "N/A",
             capacity: data.capacity || "N/A",
             power: data.power || "N/A",
@@ -81,9 +85,9 @@ const RequestPanel = () => {
             nic: data.nic || "N/A",
             address: data.address || "N/A",
             status: data.status || "Pending",
-            requestDate: requestDate // Use processed date
+            requestDate: requestDate
           };
-        });
+        }));
         
         setRequests(boatList);
         setLoading(false);
@@ -95,71 +99,57 @@ const RequestPanel = () => {
     };
 
     fetchBoatData();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
-  // Process URL for viewing or downloading
-  const processDocumentUrl = (url, type = 'view') => {
-    if (!url) return null;
-    
-    // Basic check if it looks like a web URL
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        console.warn("Document URL doesn't start with http(s)://", url);
-        return null; // Or return url, depending on how you want to handle malformed links
-    }
-
-    // Check if it's a Google Drive URL
-    if (url.includes("drive.google.com") || url.includes("docs.google.com")) {
-      let fileId = "";
+  // Function to get download URL from Firebase Storage
+  const getFirebaseStorageUrl = async (storagePath) => {
+    try {
+      if (!storagePath) return null;
       
-      // Extract the file ID from common Google Drive URL formats
-      const idMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
-      
-      if (idMatch && idMatch[1]) {
-        fileId = idMatch[1];
-      } else {
-        console.warn("Could not extract Google Drive file ID from URL:", url);
-        return url; // Return original URL if ID extraction fails
+      // Check if the path is already a URL or just a storage path
+      if (storagePath.startsWith('http')) {
+        return storagePath; // It's already a URL, return as is
       }
       
-      // Construct the correct Google Drive export URL
-      if (type === 'view') {
-        // Use the 'export=view' for viewing in iframes or potentially react-pdf
-        // This format is generally more reliable for embedding than /preview
-        return `https://drive.google.com/uc?export=view&id=${fileId}`;
-      } else if (type === 'download') {
-        // Use 'export=download' for direct download
-        return `https://drive.google.com/uc?export=download&id=${fileId}`;
-      }
+      // Create a reference to the file in Firebase Storage
+      const storageRef = ref(storage, storagePath);
+      
+      // Get the download URL
+      const downloadUrl = await getDownloadURL(storageRef);
+      console.log(`Generated download URL for ${storagePath}:`, downloadUrl);
+      return downloadUrl;
+      
+    } catch (error) {
+      console.error("Error getting download URL:", error);
+      toast.error(`Failed to get download URL: ${error.message}`);
+      return null;
     }
-    
-    // If not a Google Drive URL or extraction failed/type is unknown, return the original URL
-    return url;
   };
 
   // PDF functions
   const onDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
     setPdfLoading(false);
-    setPdfError(null); // Clear any previous error
-    setCurrentPage(1); // Reset to first page on new document load
+    setPdfError(null);
+    setCurrentPage(1);
     console.log("PDF loaded successfully. Total pages:", numPages);
   };
 
   const onDocumentLoadError = (error) => {
     console.error("PDF loading error:", error);
     setPdfLoading(false);
-    // Set a user-friendly error message
+    
     let userErrorMessage = "Failed to load document.";
     if (error.message && error.message.includes("status 403")) {
-         userErrorMessage += " (Permission denied - check file sharing settings)";
+      userErrorMessage += " (Permission denied - check file access permissions)";
     } else if (error.message && error.message.includes("status 404")) {
-         userErrorMessage += " (File not found)";
+      userErrorMessage += " (File not found)";
     } else if (error.message) {
-         userErrorMessage += ` (${error.message})`; // Include browser/react-pdf error if available
+      userErrorMessage += ` (${error.message})`;
     }
 
     setPdfError(userErrorMessage);
-    toast.error(userErrorMessage); // Also show a toast notification
+    toast.error(userErrorMessage);
   };
 
   const changePage = (offset) => {
@@ -170,62 +160,150 @@ const RequestPanel = () => {
   };
 
   // Handle document view
-  const openPdfViewer = () => {
-    if (selectedRequest && selectedRequest.document) {
-      setPdfLoading(true);
-      setPdfError(null);
-      setCurrentPage(1);
-      setNumPages(null);
-      
-      // Process the URL for viewing (prioritizing uc?export=view for GDrive)
-      const processedUrl = processDocumentUrl(selectedRequest.document, 'view');
-      
-      if (processedUrl) {
-        setPdfSource(processedUrl);
-        setShowPdfViewer(true);
-        console.log("Attempting to load PDF from:", processedUrl);
-      } else {
-        setPdfLoading(false); // Stop loading if URL processing failed
-        const errorMsg = "Invalid or unprocessable document URL.";
-        setPdfError(errorMsg);
-        toast.error(errorMsg);
+  const openPdfViewer = async () => {
+    if (selectedRequest && selectedRequest.documentUrl) {
+      try {
+        setPdfLoading(true);
+        setPdfError(null);
+        setCurrentPage(1);
+        setNumPages(null);
+        setImageSource(null); // Clear any existing image source
+        
+        // Get the download URL from Firebase Storage
+        const downloadUrl = await getFirebaseStorageUrl(selectedRequest.documentUrl);
+        
+        if (downloadUrl) {
+          // Check if it's a PDF or image by file extension
+          const lowerCaseUrl = downloadUrl.toLowerCase();
+          
+          if (lowerCaseUrl.endsWith('.pdf')) {
+            setPdfSource(downloadUrl);
+            setShowPdfViewer(true);
+            console.log("Attempting to load PDF from:", downloadUrl);
+          } else if (
+            lowerCaseUrl.endsWith('.jpg') || 
+            lowerCaseUrl.endsWith('.jpeg') || 
+            lowerCaseUrl.endsWith('.png') || 
+            lowerCaseUrl.endsWith('.gif')
+          ) {
+            setImageSource(downloadUrl);
+            setShowPdfViewer(true);
+            setPdfLoading(false);
+            console.log("Attempting to load image from:", downloadUrl);
+          } else {
+            // If neither PDF nor common image format, try to load as PDF anyway
+            setPdfSource(downloadUrl);
+            setShowPdfViewer(true);
+            console.log("Attempting to load document from:", downloadUrl);
+          }
+        } else {
+          setPdfLoading(false);
+          const errorMsg = "Failed to retrieve document URL.";
+          setPdfError(errorMsg);
+          toast.error(errorMsg);
+        }
+      } catch (error) {
+        setPdfLoading(false);
+        setPdfError(`Failed to load document: ${error.message}`);
+        toast.error(`Failed to load document: ${error.message}`);
       }
     } else {
       toast.error("No document available to view");
     }
   };
 
-  // Handle document download
-  const handleDownloadDocument = () => {
-    if (selectedRequest && selectedRequest.document) {
-      // Process the URL specifically for download (prioritizing uc?export=download for GDrive)
-      const downloadUrl = processDocumentUrl(selectedRequest.document, 'download');
-      
-      if (downloadUrl) {
-         console.log("Attempting to download from:", downloadUrl);
-        // Open in new tab for download
-        window.open(downloadUrl, '_blank');
-      } else {
-         toast.error("Could not generate download URL.");
+  // Open uploaded image
+  const openImageViewer = async () => {
+    if (selectedRequest && selectedRequest.imageUrl) {
+      try {
+        setPdfLoading(true);
+        setPdfError(null);
+        setPdfSource(null); // Clear any PDF source
+        setNumPages(null);
+        
+        // Get the download URL from Firebase Storage
+        const downloadUrl = await getFirebaseStorageUrl(selectedRequest.imageUrl);
+        
+        if (downloadUrl) {
+          setImageSource(downloadUrl);
+          setShowPdfViewer(true);
+          setPdfLoading(false);
+          console.log("Attempting to load image from:", downloadUrl);
+        } else {
+          setPdfLoading(false);
+          const errorMsg = "Failed to retrieve image URL.";
+          setPdfError(errorMsg);
+          toast.error(errorMsg);
+        }
+      } catch (error) {
+        setPdfLoading(false);
+        setPdfError(`Failed to load image: ${error.message}`);
+        toast.error(`Failed to load image: ${error.message}`);
       }
+    } else {
+      toast.error("No image available to view");
+    }
+  };
 
+  // Handle document download
+  const handleDownloadDocument = async () => {
+    if (selectedRequest && selectedRequest.documentUrl) {
+      try {
+        const downloadUrl = await getFirebaseStorageUrl(selectedRequest.documentUrl);
+        
+        if (downloadUrl) {
+          console.log("Attempting to download from:", downloadUrl);
+          // Open in new tab for download
+          window.open(downloadUrl, '_blank');
+        } else {
+          toast.error("Could not generate download URL.");
+        }
+      } catch (error) {
+        toast.error(`Download failed: ${error.message}`);
+      }
     } else {
       toast.error("No document available to download");
     }
   };
 
-  // Retry loading PDF
-  const retryPdfLoading = () => {
-      if (selectedRequest && selectedRequest.document) {
-          openPdfViewer(); // Simply call the open logic again
+  // Handle image download
+  const handleDownloadImage = async () => {
+    if (selectedRequest && selectedRequest.imageUrl) {
+      try {
+        const downloadUrl = await getFirebaseStorageUrl(selectedRequest.imageUrl);
+        
+        if (downloadUrl) {
+          console.log("Attempting to download image from:", downloadUrl);
+          // Open in new tab for download
+          window.open(downloadUrl, '_blank');
+        } else {
+          toast.error("Could not generate download URL.");
+        }
+      } catch (error) {
+        toast.error(`Download failed: ${error.message}`);
       }
+    } else {
+      toast.error("No image available to download");
+    }
+  };
+
+  // Retry loading document/image
+  const retryLoading = () => {
+    if (selectedRequest) {
+      if (pdfSource) {
+        openPdfViewer();
+      } else if (imageSource) {
+        openImageViewer();
+      }
+    }
   };
 
   const handleRequestClick = (request) => {
     setSelectedRequest(request);
-    // Reset PDF viewer state when a new request is selected
+    // Reset viewer state when a new request is selected
     setShowPdfViewer(false);
     setPdfSource(null);
+    setImageSource(null);
     setPdfLoading(false);
     setPdfError(null);
     setNumPages(null);
@@ -260,7 +338,7 @@ const RequestPanel = () => {
       ));
       
       toast.success(`Request ${newStatus.toLowerCase()} successfully`);
-      setSelectedRequest(prev => ({...prev, status: newStatus})); // Update selected request state
+      setSelectedRequest(prev => ({...prev, status: newStatus}));
       setShowConfirmation(false);
     } catch (err) {
       console.error("Error updating status:", err);
@@ -274,7 +352,7 @@ const RequestPanel = () => {
   };
 
   const handleBack = () => {
-    navigate("/Dashboard"); // Ensure this route is correct
+    navigate("/Dashboard");
   };
 
   const getStatusBadgeClass = (status) => {
@@ -303,10 +381,10 @@ const RequestPanel = () => {
         request.boatName,
         request.contact,
         request.id,
-        request.status, // Allow searching by status too
-        request.requestDate, // Allow searching by date
-        request.nic, // Allow searching by NIC
-        request.serialNumber // Allow searching by Serial Number
+        request.status,
+        request.requestDate,
+        request.nic,
+        request.serialNumber
       ].join(" ").toLowerCase();
       
       return searchFields.includes(searchTerm.toLowerCase());
@@ -324,32 +402,30 @@ const RequestPanel = () => {
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
 
-      // Handle potential null/undefined or non-comparable types if necessary
       if (aValue == null && bValue == null) return 0;
       if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
       if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
 
-      // Basic comparison
       if (aValue < bValue) {
         return sortConfig.direction === 'asc' ? -1 : 1;
       }
       if (aValue > bValue) {
         return sortConfig.direction === 'asc' ? 1 : -1;
       }
-      return 0; // values are equal
+      return 0;
     });
 
     return sorted;
   };
 
-  // Close PDF viewer when clicking outside the modal
+  // Close viewer when clicking outside the modal
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Check if the click is outside the modal content area
       if (pdfModalRef.current && !pdfModalRef.current.contains(event.target)) {
         setShowPdfViewer(false);
-        setPdfSource(null); // Clear source on close
-        setPdfError(null); // Clear error on close
+        setPdfSource(null);
+        setImageSource(null);
+        setPdfError(null);
       }
     };
 
@@ -360,39 +436,39 @@ const RequestPanel = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showPdfViewer]); // Re-run effect when showPdfViewer changes
+  }, [showPdfViewer]);
 
-  // Improved PDF viewer display with fallback options
-  const renderPdfViewerContent = () => {
+  // Render viewer content (PDF or Image)
+  const renderViewerContent = () => {
     if (pdfLoading) {
       return (
         <div className="text-center my-5">
           <div className="spinner-border"></div>
-          <p className="mt-2">Loading document...</p>
+          <p className="mt-2">Loading content...</p>
         </div>
       );
     }
     
     if (pdfError) {
       return (
-        <div className="alert alert-danger my-4 text-start"> {/* Align text left */}
-          <h5 className="alert-heading">Error Loading PDF</h5>
-          <p>{pdfError}</p> {/* Display specific error message */}
+        <div className="alert alert-danger my-4 text-start">
+          <h5 className="alert-heading">Error Loading Content</h5>
+          <p>{pdfError}</p>
           
           <hr />
           
           <p className="mb-3">Possible solutions:</p>
           <ul className="mb-3">
-              <li>Ensure the file exists at the provided URL.</li>
-              <li>If it's a Google Drive file, check that the sharing setting is "Anyone with the link can view".</li>
-              <li>Try downloading the document and opening it directly.</li>
-              <li>The file might not be a standard PDF or is corrupted.</li>
+            <li>Ensure the file exists in Firebase Storage.</li>
+            <li>Check if the storage path is correct.</li>
+            <li>Verify the security rules allow access to this file.</li>
+            <li>Try downloading the file instead of viewing it.</li>
           </ul>
 
           <div className="d-flex flex-column flex-sm-row gap-2 justify-content-center">
             <button 
               className="btn btn-outline-primary"
-              onClick={retryPdfLoading} // Add a retry button
+              onClick={retryLoading}
             >
               <FiRefreshCcw className="me-1" /> Retry Loading
             </button>
@@ -400,38 +476,46 @@ const RequestPanel = () => {
               className="btn btn-outline-secondary"
               onClick={handleDownloadDocument}
             >
-              <FiDownload className="me-1" /> Download Document
+              <FiDownload className="me-1" /> Download Content
             </button>
           </div>
-          
-          {/* Alternate option - try displaying as an iframe if a URL exists */}
-          {pdfSource && (
-            <div className="mt-4 pt-3 border-top">
-              <h6 className="mb-2">Alternative Viewer (Experimental)</h6>
-              <p className="small text-muted mb-2">
-                 Attempting to display using browser's native capabilities or Google Drive's viewer.
-              </p>
-              <iframe
-                src={pdfSource} // Use the same processed URL
-                title="Document Viewer Fallback" 
-                width="100%" 
-                height="500px"
-                className="border rounded"
-                allowFullScreen // Allow full screen
-                sandbox="allow-scripts allow-same-origin allow-presentation" // Recommended sandbox attributes
-                onError={(e) => console.error("iFrame Error:", e)} // Log iframe errors
-              />
-            </div>
-          )}
         </div>
       );
     }
     
-    // Successfully loaded or currently rendering
-    return (
-      <>
-         {/* PDF Controls */}
-        {numPages && ( // Only show controls if pages are loaded
+    // If we have an image to display
+    if (imageSource) {
+      return (
+        <div className="text-center">
+          <img 
+            src={imageSource}
+            alt="Boat Registration Document" 
+            className="img-fluid rounded border" 
+            style={{ maxHeight: '70vh' }}
+            onError={(e) => {
+              console.error("Image failed to load");
+              setPdfError("Failed to load image. The image might be corrupted or inaccessible.");
+              e.target.style.display = 'none';
+            }}
+          />
+          <div className="mt-3">
+            <button 
+              className="btn btn-sm btn-outline-secondary"
+              onClick={handleDownloadImage}
+            >
+              <FiDownload className="me-1" /> Download Image
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
+    // If we have a PDF to display
+    if (pdfSource) {
+      return (
+        <>
+          {/* PDF Controls */}
+          {numPages && (
             <div className="text-center mb-3">
               <div className="btn-group">
                 <button 
@@ -453,55 +537,57 @@ const RequestPanel = () => {
                 Page {currentPage} of {numPages}
               </span>
             </div>
-        )}
+          )}
 
-        {/* PDF Document */}
-        <div className="border rounded p-2 d-flex justify-content-center" style={{ minHeight: '300px' }}> {/* Add a min-height */}
-            {/* pdfSource is checked implicitly by <Document file={...}> */}
-             <Document
-                file={pdfSource} // Use pdfSource
-                onLoadSuccess={onDocumentLoadSuccess}
-                onLoadError={onDocumentLoadError}
-                // Custom loading component can be useful
-                loading={<div className="text-center my-5"><div className="spinner-border"></div><p>Loading PDF...</p></div>}
-                // NoData component can be added if file prop is null/undefined
-                noData={() => <div className="alert alert-info text-center">No PDF file source provided.</div>}
-             >
-                {/* Only render Page if numPages is available and pdfError is null */}
-                {numPages && !pdfError && (
-                   <Page 
-                      pageNumber={currentPage} 
-                      scale={1.2} // Adjust scale as needed
-                      renderTextLayer={false} // Set to true if you need text selection/search
-                      renderAnnotationLayer={false}
-                      className="d-flex justify-content-center"
-                      // Add onError handler for page rendering if needed
-                      onError={(err) => console.error("Page rendering error:", err)}
-                   />
-                )}
+          {/* PDF Document */}
+          <div className="border rounded p-2 d-flex justify-content-center" style={{ minHeight: '300px' }}>
+            <Document
+              file={pdfSource}
+              onLoadSuccess={onDocumentLoadSuccess}
+              onLoadError={onDocumentLoadError}
+              loading={<div className="text-center my-5"><div className="spinner-border"></div><p>Loading PDF...</p></div>}
+              noData={() => <div className="alert alert-info text-center">No PDF file source provided.</div>}
+            >
+              {numPages && !pdfError && (
+                <Page 
+                  pageNumber={currentPage} 
+                  scale={1.2}
+                  renderTextLayer={false}
+                  renderAnnotationLayer={false}
+                  className="d-flex justify-content-center"
+                  onError={(err) => console.error("Page rendering error:", err)}
+                />
+              )}
             </Document>
-        </div>
-        
-        {/* Download Hint */}
-        {pdfSource && (
-          <div className="mt-3 text-center">
-            <small className="text-muted">
-              If you have trouble viewing this document, try downloading it instead.
-            </small>
-            <div className="mt-2">
-              <button 
-                className="btn btn-sm btn-outline-secondary"
-                onClick={handleDownloadDocument}
-              >
-                <FiDownload className="me-1" /> Download Document
-              </button>
-            </div>
           </div>
-        )}
-      </>
+          
+          {/* Download Hint */}
+          {pdfSource && (
+            <div className="mt-3 text-center">
+              <small className="text-muted">
+                If you have trouble viewing this document, try downloading it instead.
+              </small>
+              <div className="mt-2">
+                <button 
+                  className="btn btn-sm btn-outline-secondary"
+                  onClick={handleDownloadDocument}
+                >
+                  <FiDownload className="me-1" /> Download Document
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      );
+    }
+    
+    // No content to display
+    return (
+      <div className="alert alert-info text-center">
+        No content selected for viewing. Please try again.
+      </div>
     );
   };
-
 
   if (loading) {
     return (
@@ -536,26 +622,29 @@ const RequestPanel = () => {
     >
       <ToastContainer position="top-right" autoClose={3000} />
       
-      {/* PDF Viewer Modal */}
+      {/* Content Viewer Modal */}
       {showPdfViewer && (
         <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" 
              style={{ backgroundColor: "rgba(0,0,0,0.8)", zIndex: 1050 }}>
           <div 
             ref={pdfModalRef}
             className="bg-white rounded-4 p-4 shadow" 
-            style={{ maxWidth: "90%", maxHeight: "90%", overflow: "auto", width: "800px" }} // Set a default max width
+            style={{ maxWidth: "90%", maxHeight: "90%", overflow: "auto", width: "800px" }}
           >
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <h5 className="m-0">Document Viewer - {selectedRequest?.boatName || 'Selected Request'}</h5> {/* Use optional chaining */}
+              <h5 className="m-0">
+                {imageSource ? "Image Viewer" : "Document Viewer"} - {selectedRequest?.boatName || 'Selected Request'}
+              </h5>
               <button className="btn-close" onClick={() => {
                 setShowPdfViewer(false);
                 setPdfSource(null);
+                setImageSource(null);
                 setPdfError(null);
               }} aria-label="Close"></button>
             </div>
             
-            {/* Render the main PDF content inside the modal */}
-            {renderPdfViewerContent()}
+            {/* Render the main content inside the modal */}
+            {renderViewerContent()}
 
           </div>
         </div>
@@ -587,15 +676,15 @@ const RequestPanel = () => {
       )}
 
       <div
-        className="w-100 mx-3 my-4 rounded-5" // Added my-4 for vertical spacing
+        className="w-100 mx-3 my-4 rounded-5"
         style={{
           maxWidth: "1200px",
           backgroundColor: "rgba(255, 255, 255, 0.9)",
           backdropFilter: "blur(10px)",
           padding: "20px",
           boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
-          overflowY: "auto", // Allow scrolling within the main panel if content overflows vertically
-          maxHeight: "95vh" // Limit height to fit viewport
+          overflowY: "auto",
+          maxHeight: "95vh"
         }}
       >
         <div className="d-flex justify-content-between align-items-center mb-4">
@@ -609,12 +698,12 @@ const RequestPanel = () => {
               style={{ cursor: "pointer" }}
               onClick={handleBack}
             />
-            <h4 className="ms-3 mb-0 text-primary fw-bold d-none d-sm-block">Fisheries Management System</h4> {/* Hide on small screens */}
-            <h4 className="ms-3 mb-0 text-primary fw-bold d-block d-sm-none">FMS</h4> {/* Show on small screens */}
+            <h4 className="ms-3 mb-0 text-primary fw-bold d-none d-sm-block">Fisheries Management System</h4>
+            <h4 className="ms-3 mb-0 text-primary fw-bold d-block d-sm-none">FMS</h4>
           </div>
-          <h2 className="text-center flex-grow-1 fw-bold m-0 fs-4">Boat Registration Requests</h2> {/* Adjusted font size */}
+          <h2 className="text-center flex-grow-1 fw-bold m-0 fs-4">Boat Registration Requests</h2>
           <div className="d-flex align-items-center">
-            <span className="me-2 text-muted d-none d-sm-inline">Admin</span> {/* Hide on small screens */}
+            <span className="me-2 text-muted d-none d-sm-inline">Admin</span>
             <img
               src={profileImage}
               alt="Profile"
@@ -626,11 +715,11 @@ const RequestPanel = () => {
         </div>
 
         {/* Filter and Search Row */}
-        <div className="row mb-4 g-3"> {/* Added g-3 for gutter */}
-          <div className="col-md-5 col-lg-4"> {/* Adjusted column sizes */}
+        <div className="row mb-4 g-3">
+          <div className="col-md-5 col-lg-4">
             <div className="input-group">
               <span className="input-group-text bg-light border-end-0">
-                <i className="bi bi-search"></i> {/* Ensure bootstrap icons are included if using bi classes */}
+                <i className="bi bi-search"></i>
               </span>
               <input
                 type="text"
@@ -641,7 +730,7 @@ const RequestPanel = () => {
               />
             </div>
           </div>
-          <div className="col-md-4 col-lg-3"> {/* Adjusted column sizes */}
+          <div className="col-md-4 col-lg-3">
             <select 
               className="form-select"
               value={filterStatus}
@@ -653,8 +742,8 @@ const RequestPanel = () => {
               <option value="Rejected">Rejected</option>
             </select>
           </div>
-          <div className="col-md-3 col-lg-5 text-md-end"> {/* Adjusted column sizes */}
-            <span className="text-muted me-2 d-block d-md-inline-block mt-2 mt-md-0"> {/* Display block on small, inline on md+ */}
+          <div className="col-md-3 col-lg-5 text-md-end">
+            <span className="text-muted me-2 d-block d-md-inline-block mt-2 mt-md-0">
               {getSortedRequests().length} matching requests
             </span>
           </div>
@@ -674,7 +763,7 @@ const RequestPanel = () => {
             <div className="card-body">
               <div className="row g-4">
                 <div className="col-md-6">
-                  <div className="d-flex flex-column"> {/* Removed h-100 for better flex behavior */}
+                  <div className="d-flex flex-column">
                     <h6 className="text-primary mb-3">Owner Information</h6>
                     <div className="mb-2">
                       <small className="text-muted d-block">Full Name</small>
@@ -700,7 +789,7 @@ const RequestPanel = () => {
                 </div>
                 
                 <div className="col-md-6">
-                   <div className="d-flex flex-column"> {/* Removed h-100 */}
+                   <div className="d-flex flex-column">
                     <h6 className="text-primary mb-3">Boat Information</h6>
                     <div className="mb-2">
                       <small className="text-muted d-block">Boat Name</small>
@@ -708,182 +797,249 @@ const RequestPanel = () => {
                     </div>
                     <div className="mb-2">
                       <small className="text-muted d-block">Length</small>
-                      <strong>{selectedRequest.boatLength}{selectedRequest.boatLength !== "N/A" ? " meters" : ""}</strong> {/* Add unit if not N/A */}
+                      <strong>{selectedRequest.boatLength}{selectedRequest.boatLength !== "N/A" ? " meters" : ""}</strong>
                     </div>
                     <div className="mb-2">
                       <small className="text-muted d-block">Capacity</small>
-                      <strong>{selectedRequest.capacity}{selectedRequest.capacity !== "N/A" ? " people" : ""}</strong> {/* Add unit if not N/A */}
+                      <strong>{selectedRequest.capacity}{selectedRequest.capacity !== "N/A" ? " people" : ""}</strong>
                     </div>
                     <div className="mb-2">
                       <small className="text-muted d-block">Engine Power</small>
-                      <strong>{selectedRequest.power}{selectedRequest.power !== "N/A" ? " HP" : ""}</strong> {/* Add unit if not N/A */}
-                    </div>
-                    <div className="mb-2">
-                      <small className="text-muted d-block">Serial Number</small>
-                      <strong>{selectedRequest.serialNumber}</strong>
-                    </div>
-                    <div className="mb-2">
-                      <small className="text-muted d-block">Registration Status</small>
-                      <span className={`badge ${getStatusBadgeClass(selectedRequest.status)}`}>
-                        {selectedRequest.status}
-                      </span>
+                     
+                      <strong>{selectedRequest.power}{selectedRequest.power !== "N/A" ? " HP" : ""}</strong>
+                      </div>
+                      <div className="mb-2">
+                        <small className="text-muted d-block">Serial Number</small>
+                        <strong>{selectedRequest.serialNumber}</strong>
+                      </div>
+                      <div className="mb-2">
+                        <small className="text-muted d-block">Status</small>
+                        <span className={`badge ${getStatusBadgeClass(selectedRequest.status)}`}>
+                          {selectedRequest.status}
+                        </span>
+                      </div>
+                      <div className="mb-2">
+                        <small className="text-muted d-block">Request Date</small>
+                        <strong>{selectedRequest.requestDate}</strong>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="row mt-4">
-                <div className="col-12">
-                  <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center"> {/* Align items differently on small/md */}
-                    <div className="mb-3 mb-md-0"> {/* Add margin bottom on small screens */}
-                      <h6 className="text-primary mb-2">Documentation</h6>
-                      <p className="mb-0 small">
-                        {selectedRequest.document ? 
-                          "Document attached to this registration request." : 
-                          "No documents attached to this request."}
-                      </p>
-                    </div>
+                
+                <hr className="my-4" />
+                
+                {/* Document & Image Section */}
+                <div className="row">
+                  <div className="col-md-6 mb-3 mb-md-0">
+                    <h6 className="text-primary mb-3">Registration Document</h6>
                     <div className="d-flex gap-2">
                       <button 
-                        className="btn btn-sm btn-outline-primary"
+                        className="btn btn-outline-primary" 
                         onClick={openPdfViewer}
-                        disabled={!selectedRequest.document}
-                        title={selectedRequest.document ? "View Document" : "No document available"} // Add tooltip
+                        disabled={!selectedRequest.documentUrl}
                       >
-                        <FiEye className="me-1" /> View
+                        <FiEye className="me-2" /> View Document
                       </button>
                       <button 
-                        className="btn btn-sm btn-outline-secondary"
+                        className="btn btn-outline-secondary" 
                         onClick={handleDownloadDocument}
-                        disabled={!selectedRequest.document}
-                        title={selectedRequest.document ? "Download Document" : "No document available"} // Add tooltip
+                        disabled={!selectedRequest.documentUrl}
                       >
-                        <FiDownload className="me-1" /> Download
+                        <FiDownload className="me-2" /> Download
                       </button>
                     </div>
+                    {!selectedRequest.documentUrl && (
+                      <p className="text-muted small mt-2">
+                        <FiFileText className="me-1" /> No document uploaded
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div className="col-md-6">
+                    <h6 className="text-primary mb-3">Boat Image</h6>
+                    <div className="d-flex gap-2">
+                      <button 
+                        className="btn btn-outline-primary" 
+                        onClick={openImageViewer}
+                        disabled={!selectedRequest.imageUrl}
+                      >
+                        <FiEye className="me-2" /> View Image
+                      </button>
+                      <button 
+                        className="btn btn-outline-secondary" 
+                        onClick={handleDownloadImage}
+                        disabled={!selectedRequest.imageUrl}
+                      >
+                        <FiDownload className="me-2" /> Download
+                      </button>
+                    </div>
+                    {!selectedRequest.imageUrl && (
+                      <p className="text-muted small mt-2">
+                        <FiFileText className="me-1" /> No image uploaded
+                      </p>
+                    )}
                   </div>
                 </div>
-              </div>
-              
-              {selectedRequest.status === "Pending" && (
-                <div className="d-flex justify-content-end gap-2 mt-4">
-                  <button 
-                    className="btn btn-danger"
-                    onClick={initiateRejection}
-                  >
-                    <FiXCircle className="me-1" /> Reject Request
-                  </button>
-                  <button 
-                    className="btn btn-success"
-                    onClick={initiateApproval}
-                  >
-                    <FiCheckCircle className="me-1" /> Approve Request
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Requests Table */}
-        <div className="table-responsive">
-          <table className="table table-hover align-middle"> {/* Added align-middle */}
-            <thead className="table-dark">
-              <tr>
-                <th 
-                  scope="col" 
-                  onClick={() => requestSort('name')}
-                  style={{ cursor: 'pointer' }}
-                >
-                  Owner {sortConfig.key === 'name' && (
-                    <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-                  )}
-                </th>
-                <th scope="col">Email</th>
-                <th 
-                  scope="col"
-                  onClick={() => requestSort('boatName')}
-                  style={{ cursor: 'pointer' }}
-                >
-                  Boat Name {sortConfig.key === 'boatName' && (
-                    <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-                  )}
-                </th>
-                <th 
-                  scope="col"
-                  onClick={() => requestSort('requestDate')}
-                  style={{ cursor: 'pointer' }}
-                >
-                  Request Date {sortConfig.key === 'requestDate' && (
-                    <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-                  )}
-                </th>
-                <th 
-                  scope="col"
-                  onClick={() => requestSort('status')}
-                  style={{ cursor: 'pointer' }}
-                >
-                  Status {sortConfig.key === 'status' && (
-                    <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-                  )}
-                </th>
-                <th scope="col">Documents</th>
-                <th scope="col">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {getSortedRequests().length > 0 ? (
-                getSortedRequests().map((request) => (
-                  <tr key={request.id} style={{ cursor: "pointer" }}>
-                    <td onClick={() => handleRequestClick(request)}>{request.name}</td>
-                    <td onClick={() => handleRequestClick(request)}>{request.email}</td>
-                    <td onClick={() => handleRequestClick(request)}>{request.boatName}</td>
-                    <td onClick={() => handleRequestClick(request)}>{request.requestDate}</td>
-                    <td onClick={() => handleRequestClick(request)}>
-                      <span className={`badge ${getStatusBadgeClass(request.status)}`}>
-                        {request.status}
-                      </span>
-                    </td>
-                    <td onClick={() => handleRequestClick(request)}>
-                      {request.document ? (
-                        <FiFileText className="text-primary" size={18} />
-                      ) : (
-                        <span className="text-muted">—</span>
-                      )}
-                    </td>
-                    <td>
-                      {/* Action button remains clickable */}
-                      <button
-                        className="btn btn-sm btn-primary"
-                        onClick={() => handleRequestClick(request)}
+                
+                {/* Action buttons */}
+                <div className="mt-4 text-end">
+                  {selectedRequest.status === "Pending" && (
+                    <>
+                      <button 
+                        className="btn btn-danger me-2" 
+                        onClick={initiateRejection}
                       >
-                        View Details
+                        <FiXCircle className="me-1" /> Reject
                       </button>
+                      <button 
+                        className="btn btn-success" 
+                        onClick={initiateApproval}
+                      >
+                        <FiCheckCircle className="me-1" /> Approve
+                      </button>
+                    </>
+                  )}
+                  {selectedRequest.status !== "Pending" && (
+                    <span className="badge bg-secondary me-2">
+                      Request already {selectedRequest.status.toLowerCase()}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+  
+          {/* Request Table */}
+          <div className="table-responsive rounded">
+            <table className="table table-hover bg-white rounded">
+              <thead className="table-light">
+                <tr>
+                  <th 
+                    style={{ cursor: "pointer" }} 
+                    onClick={() => requestSort("boatName")}
+                    className={sortConfig.key === "boatName" ? "text-primary" : ""}
+                  >
+                    Boat Name
+                    {sortConfig.key === "boatName" && (
+                      <i className={`bi bi-caret-${sortConfig.direction === 'asc' ? 'up' : 'down'}-fill ms-1`}></i>
+                    )}
+                  </th>
+                  <th 
+                    style={{ cursor: "pointer" }} 
+                    onClick={() => requestSort("name")}
+                    className={sortConfig.key === "name" ? "text-primary" : ""}
+                  >
+                    Owner
+                    {sortConfig.key === "name" && (
+                      <i className={`bi bi-caret-${sortConfig.direction === 'asc' ? 'up' : 'down'}-fill ms-1`}></i>
+                    )}
+                  </th>
+                  <th 
+                    style={{ cursor: "pointer" }} 
+                    onClick={() => requestSort("requestDate")}
+                    className={sortConfig.key === "requestDate" ? "text-primary" : ""}
+                  >
+                    Date
+                    {sortConfig.key === "requestDate" && (
+                      <i className={`bi bi-caret-${sortConfig.direction === 'asc' ? 'up' : 'down'}-fill ms-1`}></i>
+                    )}
+                  </th>
+                  <th 
+                    style={{ cursor: "pointer" }} 
+                    onClick={() => requestSort("status")}
+                    className={sortConfig.key === "status" ? "text-primary" : ""}
+                  >
+                    Status
+                    {sortConfig.key === "status" && (
+                      <i className={`bi bi-caret-${sortConfig.direction === 'asc' ? 'up' : 'down'}-fill ms-1`}></i>
+                    )}
+                  </th>
+                  <th className="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {getSortedRequests().length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="text-center py-4">
+                      No matching requests found.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" className="text-center py-4">
-                    {searchTerm || filterStatus !== "All" ? 
-                      "No matching registration requests found" : 
-                      "No registration requests found"}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-4 pt-3 border-top text-center">
-          <p className="text-muted mb-0 small">
-            Fisheries Management System • v2.5.0 • © 2025
-          </p>
+                ) : (
+                  getSortedRequests().map((request) => (
+                    <tr 
+                      key={request.id}
+                      onClick={() => handleRequestClick(request)}
+                      className={selectedRequest?.id === request.id ? "table-active" : ""}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <td>
+                        <div className="d-flex align-items-center">
+                          <div 
+                            className="bg-light rounded-circle d-flex align-items-center justify-content-center me-2"
+                            style={{ width: "35px", height: "35px" }}
+                          >
+                            <span className="text-primary fw-bold">{request.boatName.charAt(0)}</span>
+                          </div>
+                          {request.boatName}
+                        </div>
+                      </td>
+                      <td>{request.name}</td>
+                      <td>{request.requestDate}</td>
+                      <td>
+                        <span className={`badge ${getStatusBadgeClass(request.status)}`}>
+                          {request.status}
+                        </span>
+                      </td>
+                      <td className="text-end">
+                        <button 
+                          className="btn btn-sm btn-outline-primary me-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRequestClick(request);
+                          }}
+                        >
+                          Details
+                        </button>
+                        {request.status === "Pending" && (
+                          <>
+                            <button 
+                              className="btn btn-sm btn-outline-success me-1 d-none d-md-inline-block"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRequestClick(request);
+                                initiateApproval();
+                              }}
+                            >
+                              Approve
+                            </button>
+                            <button 
+                              className="btn btn-sm btn-outline-danger d-none d-md-inline-block"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRequestClick(request);
+                                initiateRejection();
+                              }}
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          
+          <div className="mt-4 text-center">
+            <button className="btn btn-primary" onClick={handleBack}>
+              Back to Dashboard
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
-
-export default RequestPanel;
+    );
+  };
+  
+  export default RequestPanel;
