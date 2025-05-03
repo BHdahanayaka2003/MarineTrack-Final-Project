@@ -1,6 +1,9 @@
-import React, { useState } from "react";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+//import React, { useState } from "react";
+//import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { initializeApp } from "firebase/app";
+//import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -13,10 +16,14 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
+//const app = initializeApp(firebaseConfig);
+//const auth = getAuth(app);
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 
-const LoginPage = () => {
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+
+/*const LoginPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -77,4 +84,4 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage;
+export default LoginPage;*/
