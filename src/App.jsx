@@ -20,9 +20,6 @@ function App() {
       <Route path="/" element={<FirstPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/admindashboard" element={<AdminDashboard />} />
-      <Route path="/officerregister" element={<OfficerRegister />} />
-      <Route path="/manageofficer" element={<ManageOfficer />} />
       <Route path="/BoatRegister" element={<BoatRegister />} />
       <Route path="/BoatRegistrationPage" element={<BoatRegistrationPage />} />
       <Route path="/BoatOwnerDetails" element={<BoatOwnerDetails />} />
