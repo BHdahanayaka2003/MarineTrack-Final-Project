@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import backgroundImage from './background.jpeg';
-import logoImage from './logo.png';
+import backgroundImage from './background.jpeg'; // Make sure this path is correct
+import logoImage from './logo.png'; // Make sure this path is correct
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faShip, 
-  faUser, 
-  faIdCard, 
-  faPhone, 
-  faEnvelope, 
-  faMapMarkerAlt, 
-  faEdit, 
-  faSave, 
+import {
+  faShip,
+  faUser,
+  faIdCard,
+  faPhone,
+  faEnvelope,
+  faMapMarkerAlt,
+  faEdit,
+  faSave,
   faArrowLeft,
   faCalendarAlt,
   faTachometerAlt,
@@ -93,6 +93,8 @@ const OwnerDetails = () => {
         } else {
           // If no data is passed, redirect back to the owners list
           setError("No owner data received. Redirecting to owners list...");
+          // Fetch data from Firestore using ID if available in URL params?
+          // For now, stick to the original logic and redirect
           setTimeout(() => navigate("/BoatOwnerDetails"), 2000);
         }
       } catch (err) {
@@ -103,8 +105,14 @@ const OwnerDetails = () => {
       }
     };
 
+    // Consider fetching data by ID if receivedOwner is null but an ID is in the URL
+    // This makes the page bookmarkable or refreshable.
+    // For now, we'll stick to the state-based approach as per the original code,
+    // but fetching by ID would be a good enhancement.
+    // Example: const { ownerId } = useParams();
+    // if (ownerId && !receivedOwner) { fetch by ownerId } else if (receivedOwner) { use receivedOwner } else { redirect }
     fetchOwnerData();
-  }, [receivedOwner, navigate]);
+  }, [receivedOwner, navigate]); // Added navigate to dependency array
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -118,6 +126,8 @@ const OwnerDetails = () => {
     } else {
       // Start editing
       setIsEditing(true);
+      // Optional: Reset formData to owner's current state before editing
+      // setFormData({ ...owner });
     }
   };
 
@@ -125,20 +135,25 @@ const OwnerDetails = () => {
     try {
       setIsSaving(true);
       setError(null);
+      setSuccess(null); // Clear previous success message
 
       if (!owner?.id) {
         setError("Cannot save: Missing owner ID");
+        setIsSaving(false); // Stop saving state
         return;
       }
 
+      // Check for any required fields if necessary before saving
+      // Example: if (!formData.name || !formData.boatName) { setError("Name and Boat Name are required."); setIsSaving(false); return; }
+
       // Update document in Firestore
-      const ownerRef = doc(db, "boat", owner.id);
+      const ownerRef = doc(db, "boat", owner.id); // Assuming collection is "boat" and id is stored in owner.id
       await updateDoc(ownerRef, {
         ...formData,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString() // Add an updated timestamp
       });
 
-      // Update local state
+      // Update local state with the saved data
       setOwner({
         ...owner,
         ...formData
@@ -146,12 +161,12 @@ const OwnerDetails = () => {
 
       setIsEditing(false);
       setSuccess("Owner details updated successfully!");
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       console.error("Error updating owner:", err);
-      setError("Failed to update owner details. Please try again.");
+      setError("Failed to update owner details. Please try again. " + err.message); // Show error message
     } finally {
       setIsSaving(false);
     }
@@ -166,6 +181,7 @@ const OwnerDetails = () => {
     }
   };
 
+  // Render loading state
   if (isLoading) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh', background: '#000' }}>
@@ -177,6 +193,19 @@ const OwnerDetails = () => {
     );
   }
 
+   // Handle case where owner data was expected but not found/received
+   if (!owner && !isLoading && !error) {
+       // This handles the case where receivedOwner was null and the timeout hasn't redirected yet
+       // Or if there's another unexpected state.
+       // The useEffect should handle the redirect, but this provides a visual fallback.
+        return (
+            <div className="d-flex justify-content-center align-items-center text-light" style={{ height: '100vh', background: '#000' }}>
+                No owner data available. Redirecting...
+            </div>
+        );
+   }
+
+
   return (
     <div
       className="container-fluid d-flex justify-content-center align-items-center m-0 p-0"
@@ -187,7 +216,7 @@ const OwnerDetails = () => {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        color: '#fff',
+        color: '#fff', // Base text color is white
       }}
     >
       <div
@@ -198,21 +227,26 @@ const OwnerDetails = () => {
           borderRadius: '20px',
           height: 'calc(100vh - 40px)',
           width: '95%',
-          overflow: 'auto',
+          overflowY: 'auto', // Use overflowY for vertical scrolling
+          overflowX: 'hidden', // Hide horizontal overflow
           boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
+          // Added padding bottom to ensure content isn't hidden by footer
+          paddingBottom: '20px'
         }}
       >
         {/* Header */}
-        <div className="d-flex justify-content-between align-items-center w-100 px-4 pt-3 pb-2 border-bottom border-secondary">
+        <div className="d-flex justify-content-between align-items-center w-100 px-4 pt-3 pb-2 border-bottom border-secondary"
+             style={{ flexShrink: 0 }} // Prevent header from shrinking
+        >
           <div className="d-flex align-items-center">
             <img
               src={logoImage}
               alt="Logo"
-              style={{ 
-                width: '50px', 
-                height: '50px', 
-                borderRadius: '50%', 
+              style={{
+                width: '50px',
+                height: '50px',
+                borderRadius: '50%',
                 cursor: 'pointer',
                 marginRight: '15px',
                 border: '2px solid #4e9af1'
@@ -232,7 +266,8 @@ const OwnerDetails = () => {
         </div>
 
         {/* Main Content */}
-        <div className="w-100 px-4 py-3" style={{ flex: 1 }}>
+        {/* Use flex-grow to make content area fill available space */}
+        <div className="w-100 px-4 py-3" style={{ flex: 1, overflowY: 'auto' }}>
           {/* Title Section */}
           <div className="d-flex justify-content-between align-items-center mb-4">
             <div>
@@ -289,7 +324,7 @@ const OwnerDetails = () => {
           <div className="row">
             {/* Owner Information Card */}
             <div className="col-md-6 mb-4">
-              <div className="card h-100" style={{ 
+              <div className="card h-100" style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -319,7 +354,8 @@ const OwnerDetails = () => {
                         }}
                       />
                     ) : (
-                      <p className="form-control-plaintext">{formData.name || 'Not provided'}</p>
+                      // FIX: Add style={{ color: '#fff' }} to ensure text is white
+                      <p className="form-control-plaintext" style={{ color: '#fff' }}>{formData.name || 'Not provided'}</p>
                     )}
                   </div>
 
@@ -342,7 +378,8 @@ const OwnerDetails = () => {
                         }}
                       />
                     ) : (
-                      <p className="form-control-plaintext">{formData.idNumber || 'Not provided'}</p>
+                      // FIX: Add style={{ color: '#fff' }} to ensure text is white
+                      <p className="form-control-plaintext" style={{ color: '#fff' }}>{formData.idNumber || 'Not provided'}</p>
                     )}
                   </div>
 
@@ -365,7 +402,8 @@ const OwnerDetails = () => {
                         }}
                       />
                     ) : (
-                      <p className="form-control-plaintext">{formData.phone || 'Not provided'}</p>
+                      // FIX: Add style={{ color: '#fff' }} to ensure text is white
+                      <p className="form-control-plaintext" style={{ color: '#fff' }}>{formData.phone || 'Not provided'}</p>
                     )}
                   </div>
 
@@ -388,7 +426,8 @@ const OwnerDetails = () => {
                         }}
                       />
                     ) : (
-                      <p className="form-control-plaintext">{formData.email || 'Not provided'}</p>
+                      // FIX: Add style={{ color: '#fff' }} to ensure text is white
+                      <p className="form-control-plaintext" style={{ color: '#fff' }}>{formData.email || 'Not provided'}</p>
                     )}
                   </div>
 
@@ -411,7 +450,8 @@ const OwnerDetails = () => {
                         }}
                       />
                     ) : (
-                      <p className="form-control-plaintext">{formData.address || 'Not provided'}</p>
+                      // FIX: Add style={{ color: '#fff' }} to ensure text is white
+                      <p className="form-control-plaintext" style={{ color: '#fff' }}>{formData.address || 'Not provided'}</p>
                     )}
                   </div>
                 </div>
@@ -420,7 +460,7 @@ const OwnerDetails = () => {
 
             {/* Boat Information Card */}
             <div className="col-md-6 mb-4">
-              <div className="card h-100" style={{ 
+              <div className="card h-100" style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -450,7 +490,8 @@ const OwnerDetails = () => {
                         }}
                       />
                     ) : (
-                      <p className="form-control-plaintext">{formData.boatName || 'Not provided'}</p>
+                      // FIX: Add style={{ color: '#fff' }} to ensure text is white
+                      <p className="form-control-plaintext" style={{ color: '#fff' }}>{formData.boatName || 'Not provided'}</p>
                     )}
                   </div>
 
@@ -473,7 +514,8 @@ const OwnerDetails = () => {
                         }}
                       />
                     ) : (
-                      <p className="form-control-plaintext">{formData.serialNumber || 'Not provided'}</p>
+                       // FIX: Add style={{ color: '#fff' }} to ensure text is white
+                      <p className="form-control-plaintext" style={{ color: '#fff' }}>{formData.serialNumber || 'Not provided'}</p>
                     )}
                   </div>
 
@@ -496,7 +538,8 @@ const OwnerDetails = () => {
                         }}
                       />
                     ) : (
-                      <p className="form-control-plaintext">{formData.year || 'Not provided'}</p>
+                      // FIX: Add style={{ color: '#fff' }} to ensure text is white
+                      <p className="form-control-plaintext" style={{ color: '#fff' }}>{formData.year || 'Not provided'}</p>
                     )}
                   </div>
 
@@ -519,7 +562,8 @@ const OwnerDetails = () => {
                         }}
                       />
                     ) : (
-                      <p className="form-control-plaintext">{formData.power ? `${formData.power} HP` : 'Not provided'}</p>
+                      // FIX: Add style={{ color: '#fff' }} to ensure text is white
+                      <p className="form-control-plaintext" style={{ color: '#fff' }}>{formData.power ? `${formData.power} HP` : 'Not provided'}</p>
                     )}
                   </div>
 
@@ -542,7 +586,8 @@ const OwnerDetails = () => {
                         }}
                       />
                     ) : (
-                      <p className="form-control-plaintext">{formData.lastInspection || 'Not available'}</p>
+                      // FIX: Add style={{ color: '#fff' }} to ensure text is white
+                      <p className="form-control-plaintext" style={{ color: '#fff' }}>{formData.lastInspection || 'Not available'}</p>
                     )}
                   </div>
                 </div>
@@ -551,7 +596,7 @@ const OwnerDetails = () => {
 
             {/* Requirements Card */}
             <div className="col-12 mb-4">
-              <div className="card" style={{ 
+              <div className="card" style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -577,7 +622,8 @@ const OwnerDetails = () => {
                       }}
                     />
                   ) : (
-                    <div className="p-3 rounded" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
+                    // FIX: Add style={{ color: '#fff' }} to ensure text is white
+                    <div className="p-3 rounded" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)', color: '#fff' }}>
                       {formData.requirements || 'No additional requirements or notes specified.'}
                     </div>
                   )}
@@ -588,7 +634,7 @@ const OwnerDetails = () => {
             {/* Status Control (Only shown when editing) */}
             {isEditing && (
               <div className="col-md-6 mb-4">
-                <div className="card" style={{ 
+                <div className="card" style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.05)',
                   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -599,7 +645,7 @@ const OwnerDetails = () => {
                   </div>
                   <div className="card-body">
                     <div className="mb-3">
-                      <label className="form-label">Registration Status</label>
+                      <label className="form-label text-muted">Registration Status</label> {/* Added text-muted */}
                       <select
                         className="form-select"
                         name="status"
@@ -607,8 +653,15 @@ const OwnerDetails = () => {
                         onChange={handleChange}
                         style={{
                           backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                          color: '#fff',
-                          border: '1px solid rgba(255, 255, 255, 0.2)'
+                          color: '#fff', // Ensure dropdown text is white
+                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          // Added arrow color fix for some browsers if needed (optional)
+                          // '-webkit-appearance': 'none',
+                          // 'appearance': 'none',
+                          // backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23ffffff\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'m2 5 6 6 6-6\'/%3e%3c/svg%3e")',
+                          // backgroundRepeat: 'no-repeat',
+                          // backgroundPosition: 'right .75rem center',
+                          // backgroundSize: '16px 12px',
                         }}
                       >
                         <option value="Pending">Pending</option>
@@ -624,7 +677,10 @@ const OwnerDetails = () => {
         </div>
 
         {/* Footer */}
-        <div className="w-100 px-4 py-3 border-top border-secondary text-center small text-muted">
+        {/* Use flex-shrink to prevent footer from growing */}
+        <div className="w-100 px-4 py-3 border-top border-secondary text-center small text-muted"
+             style={{ flexShrink: 0 }}
+        >
           <p className="mb-0">
             Fisheries Management System • v2.3.0 • © {new Date().getFullYear()}
           </p>
