@@ -30,13 +30,18 @@ function LoginPage() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
+
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       console.log('Login successful!');
-      // Pass user email to dashboard
-      navigate('/dashboard', { state: { userEmail: user.email } });
+
+      // Check for admin credentials
+      if (email === 'admin@gmail.com' && password === 'admin123') {
+        navigate('/admindashboard', { state: { userEmail: user.email } });
+      } else {
+        navigate('/dashboard', { state: { userEmail: user.email } });
+      }
     } catch (err) {
       const errorMessage = getErrorMessage(err.code);
       setError(errorMessage);
@@ -44,7 +49,7 @@ function LoginPage() {
       setIsLoading(false);
     }
   };
-  
+
   const getErrorMessage = (errorCode) => {
     switch(errorCode) {
       case 'auth/invalid-email':
@@ -118,7 +123,3 @@ function LoginPage() {
 }
 
 export default LoginPage;
-
-
-
-
