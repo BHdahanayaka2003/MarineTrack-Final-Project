@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged,signOut } from "firebase/auth";
+import { Dropdown } from "react-bootstrap";
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import profileImage from "./profile.png";
 import logoImage from "./logo.png";
@@ -29,6 +31,17 @@ const Dashboard = () => {
 
     return () => unsubscribe();
   }, [navigate, location.state]);
+
+  const handleLogout = () => {
+      const auth = getAuth();
+      signOut(auth)
+        .then(() => {
+          navigate('/'); // Redirect to login page after logout
+        })
+        .catch((error) => {
+          console.error("Error during logout:", error);
+        });
+    };
 
   const buttons = [
     { 
@@ -130,13 +143,28 @@ const Dashboard = () => {
                 <h6 className="mb-0">{userEmail}</h6>
                 <small className="text-muted">Online</small>
               </div>
-              <img 
-                src={profileImage} 
-                alt="User" 
-                width="50" 
-                height="50" 
-                className="rounded-circle border border-3 border-primary" 
-              />
+              <Dropdown align="end">
+                <Dropdown.Toggle 
+                  variant="link" 
+                  id="user-dropdown"
+                  className="d-flex align-items-center">
+                    <img 
+                       src={profileImage} 
+                       alt="User" 
+                       width="50" 
+                       height="50" 
+                       className="rounded-circle border border-3 border-primary" 
+                    />
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                <Dropdown.Item onClick={() => navigate("/officerProfileEdit")}>
+                 Edit Profile
+                </Dropdown.Item>
+                <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+
+              
             </div>
           </div>
 
