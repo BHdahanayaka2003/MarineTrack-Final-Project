@@ -3,9 +3,26 @@ import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import backgroundImage from "./background.jpeg";
 import logoImage from "./logo.png";
-import { auth, db } from "./Backend/Firebase"; // Import firebase setup
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { collection, addDoc } from "firebase/firestore"; 
+
+
+import { initializeApp } from "firebase/app";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getFirestore, collection, addDoc } from "firebase/firestore";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCRjW_lsIwKlL99xi0hU2_x2xWVSTBSkTg",
+  authDomain: "finalproject-4453c.firebaseapp.com",
+  projectId: "finalproject-4453c",
+  storageBucket: "finalproject-4453c.appspot.com",
+  messagingSenderId: "866850090007",
+  appId: "1:866850090007:web:111a4fcef7be69de0a8052",
+};
+
+// ✅ Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 const OfficerRegister = () => {
   const navigate = useNavigate();
@@ -14,7 +31,7 @@ const OfficerRegister = () => {
     email: "",
     phone: "",
     position: "",
-    password: "" // Add password field
+    password: ""
   });
 
   const handleChange = (e) => {
@@ -26,25 +43,21 @@ const OfficerRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const { name, email, phone, position, password } = formData;
 
     try {
-      // Register the user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Save officer's additional data (name, phone, position) to Firestore
       const officerData = {
         name,
         email,
         phone,
         position,
         createdAt: new Date(),
-        uid: user.uid, // Store Firebase Auth UID
+        uid: user.uid,
       };
 
-      // Add the officer data to Firestore (officers collection)
       await addDoc(collection(db, "officers"), officerData);
 
       alert("Officer registered successfully!");
@@ -160,7 +173,6 @@ const OfficerRegister = () => {
               ← Back to Dashboard
             </button>
           </div>
-
         </div>
       </div>
     </div>
