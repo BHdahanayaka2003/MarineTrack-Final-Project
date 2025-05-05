@@ -4,6 +4,24 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import backgroundImage from './background.jpeg'; // Background image
 import logoImage from './logo.png'; // Add your logo image here (make sure the path is correct)
 import { useNavigate } from 'react-router-dom';
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+
+
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCRjW_lsIwKlL99xi0hU2_x2xWVSTBSkTg",
+  authDomain: "finalproject-4453c.firebaseapp.com",
+  projectId: "finalproject-4453c",
+  storageBucket: "finalproject-4453c.appspot.com",
+  messagingSenderId: "866850090007",
+  appId: "1:866850090007:web:111a4fcef7be69de0a8052",
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 const FishermanDetails = () => {
     const navigate = useNavigate();
