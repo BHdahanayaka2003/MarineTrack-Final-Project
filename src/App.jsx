@@ -13,6 +13,8 @@ import FishermanDetails from './FishermanDetails';
 import OwnerRegister from './OwnerRegister';
 import HandleFishermanID from './HandleFishermanID';
 import RejectBoat from './RejectBoat';
+import OfficerRegister from './officerRegister'
+import AdminDashboard from './adminDashboard';
 function App() {
   return (
 
@@ -20,6 +22,7 @@ function App() {
       <Route path="/" element={<FirstPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/admindashboard" element={<AdminDashboard />} />
       <Route path="/BoatRegister" element={<BoatRegister />} />
       <Route path="/BoatRegistrationPage" element={<BoatRegistrationPage />} />
       <Route path="/BoatOwnerDetails" element={<BoatOwnerDetails />} />
@@ -29,6 +32,7 @@ function App() {
       <Route path="/OwnerRegister" element={<OwnerRegister />} />
       <Route path="/HandleFishermanID" element={<HandleFishermanID/>} />
       <Route path="/RejectBoat" element={<RejectBoat />} />
+      <Route path="/officerregister" element={<OfficerRegister />} />
     </Routes>
   );
 }
