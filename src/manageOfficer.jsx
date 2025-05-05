@@ -3,29 +3,45 @@ import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import backgroundImage from "./background.jpeg";
 import logoImage from "./logo.png";
-import { db } from "./Backend/Firebase";  // Import Firebase db
-import { collection, getDocs } from "firebase/firestore";  // Firestore functions
+
+// Firebase setup (NO separate import needed)
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
+
+// Firebase Configuration — replace with your own project credentials
+const firebaseConfig = {
+  apiKey: "AIzaSyCRjW_lsIwKlL99xi0hU2_x2xWVSTBSkTg",
+  authDomain: "finalproject-4453c.firebaseapp.com",
+  projectId: "finalproject-4453c",
+  storageBucket: "finalproject-4453c.appspot.com",
+  messagingSenderId: "866850090007",
+  appId: "1:866850090007:web:111a4fcef7be69de0a8052",
+};
+
+
+// Initialize Firebase App and Firestore
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 const ManageOfficer = () => {
   const navigate = useNavigate();
   const [officers, setOfficers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true); // Loading state
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch officer data from Firestore
   useEffect(() => {
     const fetchOfficers = async () => {
       try {
-        const officersCollection = collection(db, "officers");  // Firestore collection
+        const officersCollection = collection(db, "officers");
         const officerSnapshot = await getDocs(officersCollection);
         const officerList = officerSnapshot.docs.map(doc => ({
-          id: doc.id,  // Firestore document ID
-          ...doc.data(),  // Spread document data
+          id: doc.id,
+          ...doc.data(),
         }));
         setOfficers(officerList);
       } catch (error) {
         console.error("Error fetching officers:", error);
       } finally {
-        setIsLoading(false);  // Set loading state to false after fetching
+        setIsLoading(false);
       }
     };
 
@@ -34,7 +50,7 @@ const ManageOfficer = () => {
 
   const handleRemove = (id) => {
     if (window.confirm("Are you sure you want to remove this officer?")) {
-      // Remove officer from Firestore here (optional for now)
+      // To remove from Firestore, use deleteDoc() if needed
       setOfficers(prev => prev.filter(officer => officer.id !== id));
     }
   };
@@ -70,7 +86,7 @@ const ManageOfficer = () => {
           </div>
 
           {isLoading ? (
-            <p className="text-muted text-center">Loading officers...</p>  // Loading message
+            <p className="text-muted text-center">Loading officers...</p>
           ) : officers.length === 0 ? (
             <p className="text-muted text-center">No officers found.</p>
           ) : (
@@ -82,6 +98,8 @@ const ManageOfficer = () => {
                     <th>Email</th>
                     <th>Phone</th>
                     <th>Position</th>
+                    <th>NIC</th>
+                    <th>Address</th>
                     <th>Action</th>
                   </tr>
                 </thead>
@@ -92,6 +110,8 @@ const ManageOfficer = () => {
                       <td>{officer.email}</td>
                       <td>{officer.phone}</td>
                       <td>{officer.position}</td>
+                      <td>{officer.nic}</td>
+                      <td>{officer.address}</td>
                       <td>
                         <button
                           className="btn btn-sm btn-danger rounded-pill"
@@ -115,7 +135,6 @@ const ManageOfficer = () => {
               ← Back to Dashboard
             </button>
           </div>
-
         </div>
       </div>
     </div>
