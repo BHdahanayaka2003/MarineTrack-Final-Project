@@ -16,6 +16,7 @@ import RejectBoat from './RejectBoat';
 import OfficerRegister from './officerRegister'
 import AdminDashboard from './adminDashboard';
 import ManageOfficer from './manageOfficer';
+import OfficerProfileEdit from './officerProfileedit';
 function App() {
   return (
 
@@ -35,6 +36,7 @@ function App() {
       <Route path="/RejectBoat" element={<RejectBoat />} />
       <Route path="/officerregister" element={<OfficerRegister />} />
       <Route path="/manageofficer" element={<ManageOfficer/>}/>
+      <Route path="officerprofileedit" element={<OfficerProfileEdit/>}/>
     </Routes>
   );
 }
