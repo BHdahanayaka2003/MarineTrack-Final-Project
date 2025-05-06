@@ -52,11 +52,12 @@ const OwnerDetails = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // Form state - Added contact, documentUrl, imageUrl
+  // Form state - Added registrationId, contact, documentUrl, imageUrl
   const [formData, setFormData] = useState({
     name: '',
     boatName: '',
     serialNumber: '',
+    registrationId: '', // Added registrationId
     year: '',
     power: '',
     email: '',
@@ -91,6 +92,7 @@ const OwnerDetails = () => {
               name: data.name || '',
               boatName: data.boatName || '',
               serialNumber: data.serialNumber || '',
+              registrationId: data.registrationId || '', // Populate registrationId
               year: data.year || '',
               power: data.power || '',
               email: data.email || '',
@@ -152,6 +154,7 @@ const OwnerDetails = () => {
             name: owner.name || '',
             boatName: owner.boatName || '',
             serialNumber: owner.serialNumber || '',
+            registrationId: owner.registrationId || '', // Sync registrationId from owner state
             year: owner.year || '',
             power: owner.power || '',
             email: owner.email || '',
@@ -183,10 +186,12 @@ const OwnerDetails = () => {
       }
 
       // Prepare data for update - Map 'idNumber' back to 'nic' for Firestore
+      // NOTE: registrationId is NOT included here as it's assumed to be non-editable
       const updateData = {
         name: formData.name,
         boatName: formData.boatName,
         serialNumber: formData.serialNumber,
+        // registrationId: formData.registrationId, // <-- DO NOT include registrationId if it's not editable
         year: formData.year,
         power: formData.power,
         email: formData.email,
@@ -211,13 +216,16 @@ const OwnerDetails = () => {
         ...owner,
         ...updateData, // Use updateData which includes the mapped 'nic'
         idNumber: updateData.nic // Keep 'idNumber' in local state for consistency
+        // Keep the existing owner.registrationId since it wasn't updated
       });
-       // Ensure formData is also updated to reflect the saved state, especially if some fields weren't editable
+       // Ensure formData is also updated to reflect the saved state
+       // It already contains registrationId from the initial fetch/toggle
        setFormData({
             ...formData,
             ...updateData,
             idNumber: updateData.nic
        });
+
 
       setIsEditing(false);
       setSuccess("Owner details updated successfully!");
@@ -324,6 +332,14 @@ const OwnerDetails = () => {
           doc.setTextColor(0);
           doc.text(formData.boatName || 'Not provided', 60, y);
           y += 7;
+
+          // ADDED: Registration ID in PDF
+          doc.setTextColor(100);
+          doc.text('Registration ID:', 10, y);
+          doc.setTextColor(0);
+          doc.text(formData.registrationId || 'Not provided', 60, y);
+          y += 7;
+
 
           doc.setTextColor(100);
           doc.text('Serial Number:', 10, y);
@@ -805,7 +821,7 @@ const OwnerDetails = () => {
                         }}
                       />
                     ) : (
-                      <p className="form-control-plaintext" style={{ color: '#fff', whiteSpace: 'pre-wrap' }}>{formData.address || 'Not provided'}</p> 
+                      <p className="form-control-plaintext" style={{ color: '#fff', whiteSpace: 'pre-wrap' }}>{formData.address || 'Not provided'}</p>
                     )}
                   </div>
                 </div>
@@ -847,6 +863,17 @@ const OwnerDetails = () => {
                       <p className="form-control-plaintext" style={{ color: '#fff' }}>{formData.boatName || 'Not provided'}</p>
                     )}
                   </div>
+
+                   {/* ADDED: Display Registration ID */}
+                   <div className="mb-3">
+                       <label className="form-label text-muted">
+                           <FontAwesomeIcon icon={faIdCard} className="me-2" />
+                           Registration ID
+                       </label>
+                       {/* Registration ID is typically not editable */}
+                       <p className="form-control-plaintext" style={{ color: '#fff' }}>{formData.registrationId || 'Not provided'}</p>
+                   </div>
+
 
                   <div className="mb-3">
                     <label className="form-label text-muted">
