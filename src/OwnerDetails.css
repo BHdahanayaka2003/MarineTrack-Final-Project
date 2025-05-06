@@ -1,0 +1,350 @@
+
+
+
+/* OwnerDetails.css */
+
+/* Custom scrollbar for dark themes */
+::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05); /* Slightly visible track */
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2); /* Semi-transparent white thumb */
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3); /* Lighter on hover */
+  }
+  
+  .owner-details-container {
+    min-height: 100vh;
+    width: 100vw;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('./background.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: #fff; /* Base text color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px; /* Added padding */
+    box-sizing: border-box; /* Include padding in element's total width and height */
+  }
+  
+  .content-wrapper {
+    background-color: rgba(0, 0, 0, 0.85); /* Slightly darker overlay for content area */
+    margin: 0; /* Remove margin, use padding from container */
+    border-radius: 20px;
+    height: calc(100vh - 40px); /* Adjusted height */
+    width: 95%;
+    max-width: 1200px; /* Max width for large screens */
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7); /* Stronger shadow */
+    border: 1px solid rgba(255, 255, 255, 0.15); /* Slightly stronger border */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .header-section {
+      flex-shrink: 0; /* Prevent header from shrinking */
+      padding: 15px 30px; /* Increased padding */
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Subtler border */
+      background-color: rgba(0, 0, 0, 0.4); /* Slight background to header */
+  }
+  
+  .header-section h4 {
+      font-weight: 700; /* Bolder font weight */
+      color: #4e9af1; /* Accent color for title */
+      text-shadow: 0 0 5px rgba(78, 154, 241, 0.5); /* Subtle glow */
+  }
+  
+  .logo {
+    width: 55px; /* Slightly larger logo */
+    height: 55px;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-right: 20px; /* More space */
+    border: 3px solid #4e9af1; /* Stronger border */
+    transition: transform 0.3s ease-in-out; /* Add transition */
+  }
+  
+  .logo:hover {
+      transform: scale(1.1); /* Scale effect on hover */
+  }
+  
+  .main-content-area {
+      flex: 1; /* Allow content to grow */
+      padding: 30px; /* Increased padding */
+      display: flex;
+      flex-direction: column;
+      gap: 30px; /* Space between main sections */
+  }
+  
+  .section-title {
+      margin-bottom: 25px;
+      font-size: 2rem; /* Larger title */
+      color: #fff;
+      text-shadow: 1px 1px 5px rgba(0,0,0,0.5);
+  }
+  
+  .section-title svg {
+      color: #4e9af1; /* Accent color for icons */
+      margin-right: 15px;
+  }
+  
+  .status-badge {
+      font-size: 1.1rem; /* Larger badge */
+      padding: 8px 20px;
+      border-radius: 20px; /* Pill shape */
+      font-weight: 600;
+      min-width: 120px; /* Ensure minimum width */
+      text-align: center;
+  }
+  
+  /* Custom Card Styles */
+  .card-custom {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)); /* Subtle gradient */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4); /* Deeper shadow */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px; /* More rounded corners */
+    backdrop-filter: blur(5px); /* Frosted glass effect */
+    -webkit-backdrop-filter: blur(5px); /* Safari support */
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out; /* Hover transitions */
+  }
+  
+  .card-custom:hover {
+      transform: translateY(-5px); /* Lift effect on hover */
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6); /* Stronger shadow on hover */
+  }
+  
+  
+  .card-header-custom {
+      background-color: rgba(255, 255, 255, 0.05); /* Lighter header background */
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 15px 15px 0 0;
+      padding: 15px 20px; /* Increased padding */
+  }
+  
+  .card-header-custom h5 {
+      margin-bottom: 0;
+      color: #fff; /* White title */
+      font-weight: 600;
+  }
+  
+  .card-body-custom {
+      padding: 20px; /* Increased padding */
+  }
+  
+  /* Form Control Styles */
+  .form-control-custom {
+    background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+    color: #fff; /* White text */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border */
+    border-radius: 8px; /* Slightly rounded */
+    padding: 10px 15px; /* Comfortable padding */
+    transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  }
+  
+  .form-control-custom:focus {
+    background-color: rgba(255, 255, 255, 0.15); /* Slightly more opaque on focus */
+    color: #fff;
+    border-color: #4e9af1; /* Accent color border on focus */
+    box-shadow: 0 0 8px rgba(78, 154, 241, 0.4); /* Accent color glow on focus */
+    outline: none; /* Remove default outline */
+  }
+  
+  .form-control-custom::placeholder {
+    color: rgba(255, 255, 255, 0.5); /* Lighter placeholder text */
+  }
+  
+  /* Plain text display style */
+  .form-control-plaintext-custom {
+      display: block; /* Ensure it takes full width */
+      width: 100%;
+      padding: 10px 0; /* Match vertical padding of inputs */
+      margin-bottom: 0; /* Remove default bottom margin */
+      line-height: 1.5;
+      color: #fff; /* White text */
+      border: none; /* No border */
+      background-color: transparent; /* Transparent background */
+      resize: none; /* Prevent resizing of textarea-like displays */
+      word-break: break-word; /* Break long words */
+      white-space: pre-wrap; /* Preserve whitespace and wrap */
+  }
+  
+  .form-label {
+      font-weight: 500; /* Slightly bolder labels */
+      color: rgba(255, 255, 255, 0.7); /* Lighter label color */
+      margin-bottom: 5px;
+  }
+  
+  .form-label svg {
+      margin-right: 8px;
+      color: rgba(255, 255, 255, 0.5); /* Icon color lighter */
+  }
+  
+  
+  /* Status Dropdown arrow fix for dark background */
+  .form-select-custom {
+     background-color: rgba(255, 255, 255, 0.1);
+     color: #fff;
+     border: 1px solid rgba(255, 255, 255, 0.2);
+     border-radius: 8px;
+     padding: 10px 15px;
+     /* Custom arrow */
+     -webkit-appearance: none;
+     -moz-appearance: none;
+     appearance: none;
+     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+     background-repeat: no-repeat;
+     background-position: right .75rem center;
+     background-size: 16px 12px;
+     padding-right: 2.5rem;
+     cursor: pointer;
+     transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  }
+  .form-select-custom:focus {
+       background-color: rgba(255, 255, 255, 0.15);
+       border-color: #4e9af1;
+       box-shadow: 0 0 8px rgba(78, 154, 241, 0.4);
+       outline: none;
+  }
+  .form-select-custom option {
+      background-color: #333; /* Dark background for options */
+      color: #fff; /* White text for options */
+  }
+  
+  /* Alert Styles */
+  .alert-custom {
+      border-radius: 10px;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      font-weight: 500;
+      border: none; /* Remove default border */
+  }
+  
+  .alert-danger-custom {
+      background-color: rgba(220, 53, 69, 0.2); /* Red with transparency */
+      color: #dc3545; /* Bootstrap red */
+      border-left: 5px solid #dc3545; /* Red left border */
+  }
+  .alert-danger-custom svg {
+      color: #dc3545;
+  }
+  
+  
+  .alert-success-custom {
+      background-color: rgba(40, 167, 69, 0.2); /* Green with transparency */
+      color: #28a745; /* Bootstrap green */
+       border-left: 5px solid #28a745; /* Green left border */
+  }
+  .alert-success-custom svg {
+      color: #28a745;
+  }
+  
+  
+  /* Button Styles */
+  .btn-outline-light { /* Specificity for the back button */
+      color: rgba(255, 255, 255, 0.9);
+      border-color: rgba(255, 255, 255, 0.5);
+      transition: all 0.3s ease;
+  }
+  .btn-outline-light:hover {
+      color: #000;
+      background-color: rgba(255, 255, 255, 0.9);
+      border-color: rgba(255, 255, 255, 1);
+  }
+  
+  .btn-outline-info { /* Specificity for the download button */
+      color: #17a2b8; /* Bootstrap info */
+      border-color: #17a2b8;
+      transition: all 0.3s ease;
+  }
+  .btn-outline-info:hover {
+       color: #fff;
+      background-color: #17a2b8;
+      border-color: #17a2b8;
+  }
+  
+  .btn-primary { /* Edit button */
+      background-color: #007bff; /* Bootstrap primary blue */
+      border-color: #007bff;
+      transition: all 0.3s ease;
+  }
+  .btn-primary:hover {
+      background-color: #0056b3;
+      border-color: #004085;
+  }
+  
+  .btn-success { /* Save button */
+      background-color: #28a745; /* Bootstrap success green */
+      border-color: #28a745;
+      transition: all 0.3s ease;
+  }
+  .btn-success:hover {
+      background-color: #218838;
+      border-color: #1e7e34;
+  }
+  
+  /* Link Style for URLs */
+  .link-display {
+      color: #8ab4f8; /* Google Material Blue for links */
+      text-decoration: none;
+      transition: color 0.3s ease;
+  }
+  
+  .link-display:hover {
+      color: #c6dafc; /* Lighter blue on hover */
+      text-decoration: underline;
+  }
+  
+  /* Optional: Animation for the main content wrapper on load */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .content-wrapper {
+    /* existing styles */
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+  
+  /* Loading/Error Screen Styles */
+  .loading-screen, .error-screen {
+      background: #000; /* Solid black background */
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.2rem;
+      text-align: center;
+      padding: 20px;
+  }
+  
+  .loading-screen .spinner-border {
+      color: #4e9af1 !important; /* Accent color for spinner */
+      width: 3rem;
+      height: 3rem;
+      margin-bottom: 15px;
+  }
+  
+  .error-screen .alert {
+      max-width: 500px;
+      margin-top: 20px;
+  }
