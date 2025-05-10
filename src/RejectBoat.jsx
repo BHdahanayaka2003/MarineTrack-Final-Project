@@ -4,6 +4,23 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import backgroundImage from './background.jpeg';
 import logoImage from './logo.png';
 import profileIcon from './profile.png';
+import { initializeApp, getApps } from "firebase/app";
+
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCRjW_lsIwKlL99xi0hU2_x2xWVSTBSkTg", // Replace with your actual API key
+  authDomain: "finalproject-4453c.firebaseapp.com",
+  projectId: "finalproject-4453c",
+  storageBucket: "finalproject-4453c.appspot.com",
+  messagingSenderId: "866850090007",
+  appId: "1:866850090007:web:111a4fcef7be69de0a8052",
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
 const RejectBoat = () => {
   const [boats, setBoats] = useState([]);
