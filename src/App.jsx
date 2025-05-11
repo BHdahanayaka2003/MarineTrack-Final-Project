@@ -17,6 +17,7 @@ import OfficerRegister from './officerRegister'
 import AdminDashboard from './adminDashboard';
 import ManageOfficer from './manageOfficer';
 import OfficerProfileEdit from './officerProfileedit';
+import DepartureDetails from './DepartureDetails';
 function App() {
   return (
 
@@ -37,6 +38,7 @@ function App() {
       <Route path="/officerregister" element={<OfficerRegister />} />
       <Route path="/manageofficer" element={<ManageOfficer/>}/>
       <Route path="officerprofileedit" element={<OfficerProfileEdit/>}/>
+      <Route path="/departureDetails" element={<DepartureDetails />}/>
     </Routes>
   );
 }

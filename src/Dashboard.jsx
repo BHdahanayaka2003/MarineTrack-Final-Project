@@ -221,9 +221,9 @@ const Dashboard = () => {
     { 
       label: "Departure Details", 
       color: "primary", 
-      path: "/BoatOwnerDetails",
-      icon: "bi-person-plus",
-      description: "Add new boat owners to the system"
+      path: "/departureDetails",
+      icon: "bi-compass",
+      description: "Track and log boat departures and planned routes"
     },
     { 
       label: "Rejected Boat Details", 
