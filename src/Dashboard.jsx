@@ -219,7 +219,7 @@ const Dashboard = () => {
       description: "Delete registration records from database"
     },
     { 
-      label: "Owner Register", 
+      label: "Departure Details", 
       color: "primary", 
       path: "/BoatOwnerDetails",
       icon: "bi-person-plus",
