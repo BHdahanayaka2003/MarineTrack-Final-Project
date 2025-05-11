@@ -54,6 +54,7 @@ const OfficerProfileEdit = () => {
   const [modalMessage, setModalMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [userInfo, setUserInfo] = useState(null);
 
   // Custom CSS for modern look and feel
   const ModernStyles = () => (
@@ -151,6 +152,13 @@ const OfficerProfileEdit = () => {
         height: 4rem;
         color: #0d6efd; /* Bootstrap primary blue */
       }
+      .user-info-card {
+        background: rgba(13, 110, 253, 0.1);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #0d6efd;
+      }
     `}</style>
   );
   
@@ -162,61 +170,25 @@ const OfficerProfileEdit = () => {
           console.log("Current user email:", user.email);
           console.log("Current user uid:", user.uid);
           
-          // FIXED: Correctly access the officers collection by its proper name
+          // Get the officer document using the email
           const officersRef = collection(db, "officers");
+          const q = query(officersRef, where("email", "==", user.email));
+          const querySnapshot = await getDocs(q);
           
-          // First try: Exact match on document ID
-          const exactDocRef = doc(db, "officers", "9bV83dEICotGQSYAIFZj");
-          
-          // First, try exact document fetch by ID seen in the Firestore
-          try {
-            const exactDocSnapshot = await getDocs(query(officersRef, where("__name__", "==", "9bV83dEICotGQSYAIFZj")));
-            if (!exactDocSnapshot.empty) {
-              const docSnap = exactDocSnapshot.docs[0];
-              handleOfficerData(docSnap);
+          if (querySnapshot.empty) {
+            console.log("No officer found with this email, trying with UID...");
+            // Try to find by UID as fallback
+            const qByUid = query(officersRef, where("uid", "==", user.uid));
+            const uidQuerySnapshot = await getDocs(qByUid);
+            
+            if (uidQuerySnapshot.empty) {
+              setError("Officer profile not found. Please contact an administrator.");
+              setLoading(false);
               return;
             }
-          } catch (err) {
-            console.log("No exact document match, continuing with uid search");
-          }
-          
-          // FIXED: Try to find officer by UID
-          let q = query(officersRef, where("uid", "==", user.uid));
-          let querySnapshot = await getDocs(q);
-          
-          if (querySnapshot.empty) {
-            console.log("No uid match, trying email");
-            // Try by email if uid match fails
-            q = query(officersRef, where("email", "==", user.email));
-            querySnapshot = await getDocs(q);
-          }
-          
-          if (querySnapshot.empty) {
-            console.log("No direct match found, checking all documents");
-            // Fallback to retrieving all documents (only recommended for small collections)
-            const allDocsSnapshot = await getDocs(officersRef);
-            console.log("Total officers found:", allDocsSnapshot.docs.length);
             
-            // Log all document IDs for debugging
-            allDocsSnapshot.docs.forEach(doc => {
-              console.log("Document ID:", doc.id, "Data:", doc.data());
-            });
-            
-            // Check if we have any documents matching either uid or email
-            const foundDoc = allDocsSnapshot.docs.find(doc => {
-              const data = doc.data();
-              return (data.email && data.email.toLowerCase() === user.email.toLowerCase()) || 
-                     (data.uid && data.uid === user.uid);
-            });
-            
-            if (foundDoc) {
-              handleOfficerData(foundDoc);
-            } else {
-              setError("Officer data not found. Please contact an administrator or ensure your profile is correctly set up.");
-              setLoading(false);
-            }
+            handleOfficerData(uidQuerySnapshot.docs[0]);
           } else {
-            // We found a match with either uid or email query
             handleOfficerData(querySnapshot.docs[0]);
           }
         } catch (err) {
@@ -236,6 +208,9 @@ const OfficerProfileEdit = () => {
   const handleOfficerData = (docSnap) => {
     const officer = docSnap.data();
     console.log("Found officer data:", officer);
+
+    // Store full user info for display 
+    setUserInfo(officer);
 
     setFormData({
       name: officer.name || "",
@@ -392,10 +367,25 @@ const OfficerProfileEdit = () => {
               </div>
             )}
             
-            {userEmail && (
-              <div className="alert alert-info d-flex align-items-center alert-modern mb-4" role="alert">
-                <i className="bi bi-person-check-fill me-3 fs-4"></i>
-                <div>Editing profile for: <strong>{userEmail}</strong></div>
+            {userInfo && (
+              <div className="user-info-card mb-4">
+                <div className="d-flex align-items-center mb-2">
+                  <i className="bi bi-person-badge-fill fs-1 me-3 text-primary"></i>
+                  <div>
+                    <h5 className="mb-0 fw-bold">{userInfo.name}</h5>
+                    <p className="mb-0 text-muted">{userInfo.email}</p>
+                  </div>
+                </div>
+                <div className="row mt-3">
+                  <div className="col-md-6">
+                    <p className="mb-1"><i className="bi bi-briefcase me-2"></i> <strong>Position:</strong> {userInfo.position}</p>
+                    <p className="mb-1"><i className="bi bi-telephone me-2"></i> <strong>Phone:</strong> {userInfo.phone}</p>
+                  </div>
+                  <div className="col-md-6">
+                    <p className="mb-1"><i className="bi bi-card-text me-2"></i> <strong>NIC:</strong> {userInfo.nic}</p>
+                    <p className="mb-1"><i className="bi bi-geo-alt me-2"></i> <strong>Address:</strong> {userInfo.address}</p>
+                  </div>
+                </div>
               </div>
             )}
 
