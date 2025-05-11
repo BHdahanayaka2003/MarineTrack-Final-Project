@@ -34,9 +34,9 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 
 // Email.js configuration (Ensure these are securely managed)
-const EMAIL_SERVICE_ID = "service_znfqdnc"; // Your Email.js service ID
-const EMAIL_TEMPLATE_ID = "template_crtrt7k"; // Your Email.js template ID for approval/rejection
-const EMAIL_USER_ID = "BAak8o95YOEPNz3DxxhF9"; // Your Email.js Public Key (User ID)
+const EMAIL_SERVICE_ID = "service_1e7zx8q"; // Your Email.js service ID
+const EMAIL_TEMPLATE_ID = "template_gzjiwnf"; // Your Email.js template ID for approval/rejection
+const EMAIL_USER_ID = "OGOVI1pv0OlKwpHSQ"; // Your Email.js Public Key (User ID)
 
 
 // --- NEW: Firestore-based Sequential Boat Registration ID Generator ---
@@ -404,7 +404,7 @@ const RequestPanel = () => {
     };
 
     // Helper function to send email using Email.js
-    const sendEmail = async (recipientEmail, recipientName, boatName, status, registrationId = null) => {
+    const sendEmail = async (recipientEmail, recipientName, boatName, status, newBoatRegId = null) => {
         if (!recipientEmail || recipientEmail === "No email provided") {
             console.warn("No valid email to send notification to for request ID:", selectedRequest?.id);
             return false; // Indicate email wasn't attempted/sent
@@ -412,24 +412,25 @@ const RequestPanel = () => {
 
         try {
             // Prepare email parameters based on status
-            const emailSubject = `Update on Your Boat Registration Request for ${boatName}`;
+            let emailSubject;
             let emailBody;
 
             if (status === "Approved") {
-                emailBody = `Dear ${recipientName},\n\nWe are pleased to inform you that your boat registration request for "${boatName}" has been Approved.\n\nYour assigned Registration ID is: ${registrationId}\n\nPlease keep this ID for your records and future reference.\n\nThank you,\nThe Fisheries Management System Team`;
+                emailSubject = `Boat Registration Request Approved`;
+                emailBody = `Dear ${recipientName},\n\nWe are pleased to inform you that your boat registration request for "${boatName}" has been Approved.\n\nYour assigned Registration ID is: ${newBoatRegId}\n\nPlease keep this ID for your records and future reference.\n\nThank you,\nThe Fisheries Management System Team`;
             } else { // Rejected
+                emailSubject = `Boat Registration Request Rejected`;
                 emailBody = `Dear ${recipientName},\n\nRegarding your boat registration request for "${boatName}", we regret to inform you that it has been Rejected.\n\nPlease log in to the system or contact the administration office for more details regarding the reason for rejection.\n\nThank you for your understanding,\nThe Fisheries Management System Team`;
             }
 
             const templateParams = {
                 to_email: recipientEmail,
-                to_name: recipientName || 'Applicant', // Use 'Applicant' if name is missing
+                to_name: recipientName || 'Applicant', 
                 subject: emailSubject,
                 message: emailBody,
-                // Add any other parameters your Email.js template expects
-                boat_name: boatName,
-                status: status,
-                registration_id: registrationId || 'N/A' // Pass registration ID to template if available
+                //boat_name: boatName,
+                //status: status,
+                //registration_id: newBoatRegId || 'N/A' 
             };
 
             console.log("Sending email with params:", templateParams);
