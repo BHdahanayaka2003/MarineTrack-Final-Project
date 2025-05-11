@@ -753,7 +753,7 @@ const Dashboard = () => {
                     <i className="bi bi-three-dots-vertical"></i>
                   </Dropdown.Toggle>
                   <Dropdown.Menu align="end">
-                    <Dropdown.Item href="#/profile">
+                    <Dropdown.Item href="/officerProfileEdit">
                       <i className="bi bi-person me-2"></i>Profile
                     </Dropdown.Item>
                     <Dropdown.Item href="#/settings">
