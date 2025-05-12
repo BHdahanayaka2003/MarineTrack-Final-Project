@@ -478,7 +478,7 @@ const Dashboard = () => {
       label: "Boat Register", 
       color: "warning", 
       path: "/BoatRegister",
-      icon: "bi-ship",
+      icon: "bi bi-journal-plus",
       description: "Register new boats in the system"
     },
     { 
