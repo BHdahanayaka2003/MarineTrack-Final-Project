@@ -916,26 +916,30 @@ const RequestPanel = () => {
                 className="container-fluid bg-white rounded-4 shadow-lg p-4"
                 style={{ maxWidth: "1600px", width: '95%', maxHeight: "95vh", overflowY: "auto" }} // Adjusted max-width and overflow
             >
-                {/* Header */}
+               
                 <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                     <div className="d-flex align-items-center">
-                        <img
-                            src={logoImage}
-                            alt="System Logo"
-                            style={{ width: "50px", height: "auto" }}
-                            className="me-3"
-                        />
+                        <button
+                            onClick={handleBack}
+                            style={{
+                                background: "none",
+                                border: "none",
+                                padding: 0,
+                                cursor: "pointer",
+                            }}
+                        >
+                            <img
+                                src={logoImage}
+                                alt="System Logo"
+                                style={{ width: "50px", height: "auto" }}
+                                className="me-3"
+                            />
+                        </button>
                         <h2 className="m-0 text-primary fw-bold">Boat Registration Approval</h2>
                     </div>
-                    <button
-                        className="btn btn-outline-secondary" // Changed style slightly
-                        onClick={handleBack}
-                    >
-                        <i className="bi bi-arrow-left-circle me-1"></i> Back to Dashboard
-                    </button>
                 </div>
 
-                {/* Filters and Summary */}
+               
                 <div className="row mb-4 align-items-center">
                     <div className="col-lg-5 col-md-6 mb-2 mb-md-0">
                         <div className="input-group">
@@ -967,7 +971,7 @@ const RequestPanel = () => {
                             </select>
                         </div>
                     </div>
-                    <div className="col-lg-4 text-lg-end text-center mt-2 mt-lg-0">
+                    <div className="col-lg-4 text-lg-end text-center mt-3 mt-lg-0">
                         <span className="text-muted me-3">
                             Showing: {displayedRequests.length} / {requests.length} Requests
                         </span>
