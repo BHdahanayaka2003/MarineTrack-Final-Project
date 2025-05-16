@@ -176,7 +176,7 @@ const BoatOwnerDetails = () => {
       <div
         className="d-flex flex-column align-items-center justify-content-start"
         style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          backgroundColor: 'rgba(250, 250, 250, 0.10)',
           margin: '20px',
           borderRadius: '20px',
           height: 'calc(100vh - 40px)',
@@ -195,10 +195,8 @@ const BoatOwnerDetails = () => {
               style={{ 
                 width: '50px', 
                 height: '50px', 
-                borderRadius: '50%', 
                 cursor: 'pointer',
                 marginRight: '15px',
-                border: '2px solid #4e9af1'
               }}
               onClick={() => navigate("/Dashboard")}
             />
@@ -345,7 +343,7 @@ const BoatOwnerDetails = () => {
 
               {/* Unique Owners Table */}
               <div className="card mb-4" style={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                backgroundColor: 'rgba(250, 243, 243, 0.05)',
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
                 border: '1px solid rgba(255, 255, 255, 0.1)'
               }}>
