@@ -682,89 +682,89 @@ const DepartureDetails = () => {
     }));
 
     return (
-    <div className="departure-form-section">
-      <h4 className="mb-4 text-white"><FontAwesomeIcon icon={faSignOutAlt} className="me-2" />Register New Departure</h4>
-      <div className="card border-0 shadow-sm bg-white text-dark">
+      <div className="departure-form-section">
+        <h4 className="mb-4 text-white"><FontAwesomeIcon icon={faSignOutAlt} className="me-2" />Register New Departure</h4>
+        <div className="card border-0 shadow-sm bg-white">
         <div className="card-body">
           <form onSubmit={handleRegisterDeparture}>
+          <div className="row">
+            <div className="col-md-6">
+            <div className="mb-3">
+              <label htmlFor="boatId" className="form-label fw-bold text-dark">Boat <span className="text-danger">*</span></label>
+              <select className="form-select" id="boatId" name="boatId" value={formData.boatId} onChange={handleInputChange} required>
+              <option value="">Select a boat</option>
+              {boats.map(boat => <option key={boat.id} value={boat.id}>{boat.boatName || 'Unnamed Boat'} ({boat.boatRegNo || boat.id})</option>)}
+              </select>
+              {selectedBoat && <div className="mt-2 p-2 bg-light rounded small"><strong>Details:</strong> Reg No: {selectedBoat.boatRegNo}, L: {selectedBoat.boatLength}m, Cap: {selectedBoat.capacity}, Contact: {selectedBoat.contact}</div>}
+            </div>
+            <div className="mb-3">
+              <label htmlFor="selectedFishermen" className="form-label fw-bold text-dark">Fishermen <span className="text-danger">*</span></label>
+              <Select
+              id="selectedFishermen"
+              isMulti
+              options={fishermenOptions}
+              value={formData.selectedFishermen}
+              onChange={handleFishermenSelectChange}
+              placeholder="Select fishermen..."
+              noOptionsMessage={() => availableFishermen.length === 0 && fishermen.length > 0 ? "All fishermen are currently active" : (fishermen.length === 0 ? "No fishermen registered" : "Type to search...")}
+              className="react-select-container"
+              classNamePrefix="react-select"
+              required
+              />
+               {formData.selectedFishermen.length > 0 && (
+              <div className="mt-2 p-2 bg-light rounded small">
+                <strong>Selected:</strong> {formData.selectedFishermen.map(f => f.label.split(' (')[0]).join(', ')}
+              </div>
+              )}
+            </div>
             <div className="row">
-              <div className="col-md-6">
-                <div className="mb-3">
-                  <label htmlFor="boatId" className="form-label">Boat <span className="text-danger">*</span></label>
-                  <select className="form-select" id="boatId" name="boatId" value={formData.boatId} onChange={handleInputChange} required>
-                    <option value="">Select a boat</option>
-                    {boats.map(boat => <option key={boat.id} value={boat.id}>{boat.boatName || 'Unnamed Boat'} ({boat.boatRegNo || boat.id})</option>)}
-                  </select>
-                  {selectedBoat && <div className="mt-2 p-2 bg-light rounded small"><strong>Details:</strong> Reg No: {selectedBoat.boatRegNo}, L: {selectedBoat.boatLength}m, Cap: {selectedBoat.capacity}, Contact: {selectedBoat.contact}</div>}
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="selectedFishermen" className="form-label">Fishermen <span className="text-danger">*</span></label>
-                  <Select
-                    id="selectedFishermen"
-                    isMulti
-                    options={fishermenOptions}
-                    value={formData.selectedFishermen}
-                    onChange={handleFishermenSelectChange}
-                    placeholder="Select fishermen..."
-                    noOptionsMessage={() => availableFishermen.length === 0 && fishermen.length > 0 ? "All fishermen are currently active" : (fishermen.length === 0 ? "No fishermen registered" : "Type to search...")}
-                    className="react-select-container"
-                    classNamePrefix="react-select"
-                    required // Note: react-select doesn't natively support HTML5 required. Validation handled in submit.
-                  />
-                   {formData.selectedFishermen.length > 0 && (
-                    <div className="mt-2 p-2 bg-light rounded small">
-                        <strong>Selected:</strong> {formData.selectedFishermen.map(f => f.label.split(' (')[0]).join(', ')}
-                    </div>
-                  )}
-                </div>
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <label htmlFor="departureDate" className="form-label">Departure Date <span className="text-danger">*</span></label>
-                    <input type="date" className="form-control" id="departureDate" name="departureDate" value={formData.departureDate} onChange={handleInputChange} required />
-                  </div>
-                  <div className="col-md-6 mb-3">
-                    <label htmlFor="departureTime" className="form-label">Departure Time <span className="text-danger">*</span></label>
-                    <input type="time" className="form-control" id="departureTime" name="departureTime" value={formData.departureTime} onChange={handleInputChange} required />
-                  </div>
-                </div>
+              <div className="col-md-6 mb-3">
+              <label htmlFor="departureDate" className="form-label fw-bold text-dark">Departure Date <span className="text-danger">*</span></label>
+              <input type="date" className="form-control" id="departureDate" name="departureDate" value={formData.departureDate} onChange={handleInputChange} required />
               </div>
-              <div className="col-md-6">
-                <div className="mb-3">
-                  <label htmlFor="weatherCondition" className="form-label">Weather Condition</label>
-                  <select className="form-select" id="weatherCondition" name="weatherCondition" value={formData.weatherCondition} onChange={handleInputChange}>
-                    {['Fair', 'Good', 'Moderate', 'Rough', 'Stormy'].map(w => <option key={w} value={w}>{w}</option>)}
-                  </select>
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="destination" className="form-label">Destination <FontAwesomeIcon icon={faRoute} className="ms-1 text-muted"/></label>
-                  <input type="text" className="form-control" id="destination" name="destination" value={formData.destination} onChange={handleInputChange} placeholder="e.g., North Fishing Grounds" />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="purpose" className="form-label">Purpose</label>
-                  <select className="form-select" id="purpose" name="purpose" value={formData.purpose} onChange={handleInputChange}>
-                    {['Fishing', 'Maintenance', 'Transport', 'Tourism', 'Survey', 'Other'].map(p => <option key={p} value={p}>{p}</option>)}
-                  </select>
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="estimatedReturn" className="form-label">Estimated Return (Date & Time)</label>
-                  <input type="datetime-local" className="form-control" id="estimatedReturn" name="estimatedReturn" value={formData.estimatedReturn} onChange={handleInputChange} />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="notes" className="form-label">Notes</label>
-                  <textarea className="form-control" id="notes" name="notes" value={formData.notes} onChange={handleInputChange} rows="2" placeholder="Any additional information"></textarea>
-                </div>
+              <div className="col-md-6 mb-3">
+              <label htmlFor="departureTime" className="form-label fw-bold text-dark">Departure Time <span className="text-danger">*</span></label>
+              <input type="time" className="form-control" id="departureTime" name="departureTime" value={formData.departureTime} onChange={handleInputChange} required />
               </div>
             </div>
-            <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                {isSubmitting ? <><FontAwesomeIcon icon={faSpinner} spin className="me-2" />Processing...</> : <><FontAwesomeIcon icon={faSignOutAlt} className="me-2" />Register Departure</>}
-              </button>
             </div>
+            <div className="col-md-6">
+            <div className="mb-3">
+              <label htmlFor="weatherCondition" className="form-label fw-bold text-dark">Weather Condition</label>
+              <select className="form-select" id="weatherCondition" name="weatherCondition" value={formData.weatherCondition} onChange={handleInputChange}>
+              {['Fair', 'Good', 'Moderate', 'Rough', 'Stormy'].map(w => <option key={w} value={w}>{w}</option>)}
+              </select>
+            </div>
+            <div className="mb-3">
+              <label htmlFor="destination" className="form-label fw-bold text-dark">Destination <FontAwesomeIcon icon={faRoute} className="ms-1 text-muted"/></label>
+              <input type="text" className="form-control" id="destination" name="destination" value={formData.destination} onChange={handleInputChange} placeholder="e.g., North Fishing Grounds" />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="purpose" className="form-label fw-bold text-dark">Purpose</label>
+              <select className="form-select" id="purpose" name="purpose" value={formData.purpose} onChange={handleInputChange}>
+              {['Fishing', 'Maintenance', 'Transport', 'Tourism', 'Survey', 'Other'].map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+            <div className="mb-3">
+              <label htmlFor="estimatedReturn" className="form-label fw-bold text-dark">Estimated Return (Date & Time)</label>
+              <input type="datetime-local" className="form-control" id="estimatedReturn" name="estimatedReturn" value={formData.estimatedReturn} onChange={handleInputChange} />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="notes" className="form-label fw-bold text-dark">Notes</label>
+              <textarea className="form-control" id="notes" name="notes" value={formData.notes} onChange={handleInputChange} rows="2" placeholder="Any additional information"></textarea>
+            </div>
+            </div>
+          </div>
+          <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+            <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+            {isSubmitting ? <><FontAwesomeIcon icon={faSpinner} spin className="me-2" />Processing...</> : <><FontAwesomeIcon icon={faSignOutAlt} className="me-2" />Register Departure</>}
+            </button>
+          </div>
           </form>
         </div>
+        </div>
       </div>
-    </div>
-  )};
+    )};
 
   const ArrivalFormSection = () => (
     <div className="arrival-form-section">
@@ -775,7 +775,7 @@ const DepartureDetails = () => {
             <div className="row">
               <div className="col-md-6">
                 <div className="mb-3">
-                  <label htmlFor="arrivalBoatId" className="form-label">Boat (Currently Departed) <span className="text-danger">*</span></label>
+                  <label htmlFor="arrivalBoatId" className="form-label text-dark">Boat (Currently Departed) <span className="text-danger">*</span></label>
                   <select className="form-select" id="arrivalBoatId" name="boatId" value={arrivalFormData.boatId} onChange={handleArrivalInputChange} required>
                     <option value="">Select a boat to mark as arrived</option>
                     {departures
@@ -787,16 +787,16 @@ const DepartureDetails = () => {
                 </div>
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label htmlFor="arrivalDate" className="form-label">Arrival Date <span className="text-danger">*</span></label>
+                    <label htmlFor="arrivalDate" className="form-label text-dark">Arrival Date <span className="text-danger">*</span></label>
                     <input type="date" className="form-control" id="arrivalDate" name="arrivalDate" value={arrivalFormData.arrivalDate} onChange={handleArrivalInputChange} required />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label htmlFor="arrivalTime" className="form-label">Arrival Time <span className="text-danger">*</span></label>
+                    <label htmlFor="arrivalTime" className="form-label text-dark">Arrival Time <span className="text-danger">*</span></label>
                     <input type="time" className="form-control" id="arrivalTime" name="arrivalTime" value={arrivalFormData.arrivalTime} onChange={handleArrivalInputChange} required />
                   </div>
                 </div>
                  <div className="mb-3">
-                  <label htmlFor="condition" className="form-label">Boat Condition <FontAwesomeIcon icon={faTools} className="ms-1 text-muted"/></label>
+                  <label htmlFor="condition" className="form-label text-dark">Boat Condition <FontAwesomeIcon icon={faTools} className="ms-1 text-muted"/></label>
                   <select className="form-select" id="condition" name="condition" value={arrivalFormData.condition} onChange={handleArrivalInputChange}>
                     {['Good', 'Fair', 'Needs Maintenance', 'Damaged', 'Lost/Sunk'].map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -804,11 +804,11 @@ const DepartureDetails = () => {
               </div>
               <div className="col-md-6">
                 <div className="mb-3">
-                  <label htmlFor="catchDetails" className="form-label">Catch Details</label>
+                  <label htmlFor="catchDetails" className="form-label text-dark">Catch Details</label>
                   <textarea className="form-control" id="catchDetails" name="catchDetails" value={arrivalFormData.catchDetails} onChange={handleArrivalInputChange} rows="3" placeholder="e.g., Tuna: 500kg, Mackerel: 200kg"></textarea>
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="arrivalNotes" className="form-label">Arrival Notes</label>
+                  <label htmlFor="arrivalNotes" className="form-label text-dark">Arrival Notes</label>
                   <textarea className="form-control" id="notes" name="notes" value={arrivalFormData.notes} onChange={handleArrivalInputChange} rows="3" placeholder="Any issues during trip, observations, etc."></textarea>
                 </div>
               </div>
