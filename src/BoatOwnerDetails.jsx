@@ -11,7 +11,7 @@ import { faSearch, faShip, faUser, faChartLine, faBell, faAnchor, faList, faExcl
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCRjW_lsIwKlL99xi0hU2_x2xWVSTBSkTg",
+  apiKey: "AIzaSyCRjW_lsIwKlL99xi0hU2_x2xWVSTBSkTg", // IMPORTANT: Consider environment variables for API keys
   authDomain: "finalproject-4453c.firebaseapp.com",
   projectId: "finalproject-4453c",
   storageBucket: "finalproject-4453c.appspot.com",
@@ -39,7 +39,6 @@ const BoatOwnerDetails = () => {
     const fetchBoatData = async () => {
       try {
         setIsLoading(true);
-        // Get all documents from the "boat" collection
         const querySnapshot = await getDocs(collection(db, "boat"));
         
         if (querySnapshot.empty) {
@@ -48,34 +47,28 @@ const BoatOwnerDetails = () => {
           return;
         }
         
-        // Map the documents to our state format
         const ownersData = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
         
-        // Process the data to group by email
         const ownerMap = {};
         const boatCountByEmail = {};
         const emailMap = {};
         
         ownersData.forEach(owner => {
-          // Use email as the unique identifier
-          // Fallback to id if email doesn't exist
-          const email = owner.email || owner.id;
+          const email = owner.email || owner.id; // Use email as primary key, fallback to doc.id if email is missing
           
-          // Store the first owner data per email for reference
+          // Initialize emailMap entry if it doesn't exist
           if (!emailMap[email]) {
             emailMap[email] = {
-              ...owner,
-              // Ensure these fields exist
+              ...owner, // Spread owner data, this will be refined if multiple boats share an email
               name: owner.name || 'Unnamed Owner',
-              email: owner.email || 'No Email',
-              boatName: owner.boatName || 'Unnamed Vessel'
+              email: owner.email || 'No Email Provided', // Ensure email field is populated
+              boatName: owner.boatName || 'Unnamed Vessel' // Use the first boat's name as a representative
             };
           }
           
-          // Group boats by owner email
           if (!ownerMap[email]) {
             ownerMap[email] = [];
           }
@@ -84,10 +77,9 @@ const BoatOwnerDetails = () => {
           boatCountByEmail[email] = (boatCountByEmail[email] || 0) + 1;
         });
         
-        // Store all the processed data in state
-        setBoatOwners(ownersData);
+        setBoatOwners(ownersData); // This stores all individual boat documents
         setOwnerBoatCounts(boatCountByEmail);
-        setEmailToOwnerMap(emailMap);
+        setEmailToOwnerMap(emailMap); // This stores unique owners by email
         setIsLoading(false);
         setError(null);
       } catch (error) {
@@ -100,39 +92,34 @@ const BoatOwnerDetails = () => {
     fetchBoatData();
   }, []);
 
-  // Get a list of unique owners by email
   const getUniqueOwnersByEmail = () => {
-    // Create an array from the values of emailToOwnerMap
     const uniqueOwners = Object.values(emailToOwnerMap);
-    
-    // Return all entries with proper fallbacks
     return uniqueOwners.map(owner => ({
       ...owner,
       name: owner.name || 'Unnamed Owner',
-      email: owner.email || 'No Email',
+      email: owner.email || 'No Email Provided',
       boatName: owner.boatName || 'Unnamed Vessel'
     }));
   };
 
-  // Filter boat owners based on search term and view mode
   const filteredOwners = viewMode === 'all' 
-    ? boatOwners.filter(owner =>
+    ? boatOwners.filter(owner => // In 'all' mode, initially we show unique owners, not all boats
         (owner.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (owner.serialNumber?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (owner.serialNumber?.toLowerCase() || '').includes(searchTerm.toLowerCase()) || // This search is on all boats
         (owner.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
       )
-    : boatOwners.filter(owner => owner.email === selectedEmail);
+    : boatOwners.filter(owner => owner.email === selectedEmail); // In 'details' mode, show boats for selected email
 
-  // Get unique filtered owners for the owners list
+  // This list is for the main owners table
   const uniqueFilteredOwners = viewMode === 'all'
     ? getUniqueOwnersByEmail().filter(owner =>
         (owner.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (owner.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
       )
-    : [emailToOwnerMap[selectedEmail]].filter(Boolean); // Filter out null/undefined
+    : [emailToOwnerMap[selectedEmail]].filter(Boolean); // Should show details of selected owner, not relevant for this list
 
-  const handleOwnerClick = (owner) => {
-    navigate("/OwnerDetails", { state: { owner } });
+  const handleOwnerClick = (boat) => { // Renamed for clarity, as it navigates with boat data
+    navigate("/OwnerDetails", { state: { owner: boat } }); // Pass the specific boat document
   };
 
   const handleViewBoatsByEmail = (email) => {
@@ -160,13 +147,18 @@ const BoatOwnerDetails = () => {
     }
   };
 
+  const secondaryTextStyle = { color: 'rgba(200, 200, 210, 0.75)' };
+  // tableHeaderStyle color will be largely handled by table-dark, but fontWeight can remain.
+  const tableHeaderStyle = { color: 'rgba(220, 220, 230, 0.9)', fontWeight: '500' };
+
+
   return (
     <div
       className="container-fluid d-flex justify-content-center align-items-center m-0 p-0"
       style={{
         minHeight: '100vh',
         width: '100vw',
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(${backgroundImage})`,
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.95)), url(${backgroundImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -176,18 +168,19 @@ const BoatOwnerDetails = () => {
       <div
         className="d-flex flex-column align-items-center justify-content-start"
         style={{
-          backgroundColor: 'rgba(250, 250, 250, 0.10)',
+          backgroundColor: 'rgba(20, 25, 40, 0.8)',
+          backdropFilter: 'blur(15px)',
           margin: '20px',
           borderRadius: '20px',
           height: 'calc(100vh - 40px)',
           width: '95%',
           overflow: 'auto',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.6)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
         }}
       >
         {/* Header with Navigation */}
-        <div className="d-flex justify-content-between align-items-center w-100 px-4 pt-3 pb-2 border-bottom border-secondary">
+        <div className="d-flex justify-content-between align-items-center w-100 px-4 pt-3 pb-2 border-bottom" style={{borderColor: 'rgba(255, 255, 255, 0.15) !important'}}>
           <div className="d-flex align-items-center">
             <img
               src={logoImage}
@@ -200,7 +193,7 @@ const BoatOwnerDetails = () => {
               }}
               onClick={() => navigate("/Dashboard")}
             />
-            <h4 className="mb-0" style={{ fontWeight: '600' }}>Fisheries Management</h4>
+            <h4 className="mb-0" style={{ fontWeight: '600', color: '#FFFFFF' }}>Fisheries Management</h4>
           </div>
 
           <div className="d-flex align-items-center">
@@ -214,7 +207,7 @@ const BoatOwnerDetails = () => {
             <div className="position-relative mx-2">
               <FontAwesomeIcon 
                 icon={faBell} 
-                style={{ fontSize: '1.2rem', cursor: 'pointer' }} 
+                style={{ fontSize: '1.2rem', cursor: 'pointer', color: 'rgba(255,255,255,0.9)' }} 
               />
               <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                 3
@@ -239,7 +232,7 @@ const BoatOwnerDetails = () => {
         <div className="w-100 px-4 py-3" style={{ flex: 1 }}>
           <div className="d-flex justify-content-between align-items-center mb-4">
             <div>
-              <h2 className="mb-0">
+              <h2 className="mb-0" style={{color: '#FFFFFF'}}>
                 {viewMode === 'all' ? (
                   <>
                     <FontAwesomeIcon icon={faShip} className="me-2" />
@@ -258,9 +251,9 @@ const BoatOwnerDetails = () => {
                   </>
                 )}
               </h2>
-              {viewMode === 'details' && (
-                <p className="text-muted mb-0 mt-1">
-                  Email: {ownerDetails?.email} • Total Registered Boats: {ownerBoatCounts[selectedEmail] || 0}
+              {viewMode === 'details' && ownerDetails && (
+                <p className="mb-0 mt-1" style={{ color: 'rgba(220, 220, 230, 0.8)' }}>
+                  Email: {ownerDetails?.email || 'N/A'} • Total Registered Boats: {ownerBoatCounts[selectedEmail] || 0}
                 </p>
               )}
             </div>
@@ -273,9 +266,9 @@ const BoatOwnerDetails = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{
                   padding: '12px 20px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.25)', 
                   color: '#fff',
-                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)',
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.35)',
                 }}
               />
               <FontAwesomeIcon
@@ -285,15 +278,14 @@ const BoatOwnerDetails = () => {
                   top: '50%',
                   left: '20px',
                   transform: 'translateY(-50%)',
-                  color: 'rgba(255, 255, 255, 0.7)',
+                  color: 'rgba(255, 255, 255, 0.6)',
                 }}
               />
             </div>
           </div>
 
-          {/* Error Message */}
           {error && (
-            <div className="alert alert-danger d-flex align-items-center mb-4" role="alert">
+            <div className="alert alert-danger d-flex align-items-center mb-4" role="alert" style={{backgroundColor: 'rgba(220, 53, 69, 0.2)', border: '1px solid rgba(220, 53, 69, 0.4)', color: '#f8d7da'}}>
               <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
               <div>{error}</div>
             </div>
@@ -301,39 +293,82 @@ const BoatOwnerDetails = () => {
 
           {viewMode === 'all' && (
             <>
-              {/* Stats Cards */}
               <div className="row mb-4">
                 <div className="col-md-3">
-                  <div className="card bg-primary bg-opacity-10 border-primary border-opacity-25 rounded-3 h-100">
+                  <div 
+                    className="card border-0 rounded-3 h-100"
+                    style={{
+                      background: 'rgba(13, 110, 253, 0.15)', 
+                      backdropFilter: 'blur(10px)',
+                      boxShadow: '0 4px 15px rgba(13, 110, 253, 0.2)',
+                      border: '1px solid rgba(13, 110, 253, 0.3)'
+                    }}
+                  >
                     <div className="card-body">
-                      <h5 className="card-title text-primary">Total Owners</h5>
-                      <h2 className="card-text">{Object.keys(emailToOwnerMap).length}</h2>
+                      <div className="d-flex justify-content-between">
+                        <h5 className="card-title text-primary" style={{fontWeight: '500'}}>Total Owners</h5>
+                        <FontAwesomeIcon icon={faUser} className="text-primary" size="lg" />
+                      </div>
+                      <h2 className="card-text mt-2" style={{color: '#FFFFFF'}}>{Object.keys(emailToOwnerMap).length}</h2>
                     </div>
                   </div>
                 </div>
                 <div className="col-md-3">
-                  <div className="card bg-success bg-opacity-10 border-success border-opacity-25 rounded-3 h-100">
+                  <div 
+                    className="card border-0 rounded-3 h-100"
+                    style={{
+                      background: 'rgba(25, 135, 84, 0.15)', 
+                      backdropFilter: 'blur(10px)',
+                      boxShadow: '0 4px 15px rgba(25, 135, 84, 0.2)',
+                      border: '1px solid rgba(25, 135, 84, 0.3)'
+                    }}
+                  >
                     <div className="card-body">
-                      <h5 className="card-title text-success">Total Boats</h5>
-                      <h2 className="card-text">{boatOwners.length}</h2>
+                      <div className="d-flex justify-content-between">
+                        <h5 className="card-title text-success" style={{fontWeight: '500'}}>Total Boats</h5>
+                        <FontAwesomeIcon icon={faShip} className="text-success" size="lg" />
+                      </div>
+                      <h2 className="card-text mt-2" style={{color: '#FFFFFF'}}>{boatOwners.length}</h2>
                     </div>
                   </div>
                 </div>
                 <div className="col-md-3">
-                  <div className="card bg-warning bg-opacity-10 border-warning border-opacity-25 rounded-3 h-100">
+                  <div 
+                    className="card border-0 rounded-3 h-100"
+                    style={{
+                      background: 'rgba(255, 193, 7, 0.15)', 
+                      backdropFilter: 'blur(10px)',
+                      boxShadow: '0 4px 15px rgba(255, 193, 7, 0.2)',
+                      border: '1px solid rgba(255, 193, 7, 0.3)'
+                    }}
+                  >
                     <div className="card-body">
-                      <h5 className="card-title text-warning">Pending</h5>
-                      <h2 className="card-text">
+                      <div className="d-flex justify-content-between">
+                        <h5 className="card-title text-warning" style={{fontWeight: '500'}}>Pending</h5>
+                        <FontAwesomeIcon icon={faExclamationTriangle} className="text-warning" size="lg" />
+                      </div>
+                      <h2 className="card-text mt-2" style={{color: '#FFFFFF'}}>
                         {boatOwners.filter(o => o.status === 'Pending').length}
                       </h2>
                     </div>
                   </div>
                 </div>
                 <div className="col-md-3">
-                  <div className="card bg-info bg-opacity-10 border-info border-opacity-25 rounded-3 h-100">
+                  <div 
+                    className="card border-0 rounded-3 h-100"
+                    style={{
+                      background: 'rgba(13, 202, 240, 0.15)', 
+                      backdropFilter: 'blur(10px)',
+                      boxShadow: '0 4px 15px rgba(13, 202, 240, 0.2)',
+                      border: '1px solid rgba(13, 202, 240, 0.3)'
+                    }}
+                  >
                     <div className="card-body">
-                      <h5 className="card-title text-info">Avg. Boats/Owner</h5>
-                      <h2 className="card-text">
+                      <div className="d-flex justify-content-between">
+                        <h5 className="card-title text-info" style={{fontWeight: '500'}}>Avg. Boats/Owner</h5>
+                        <FontAwesomeIcon icon={faAnchor} className="text-info" size="lg" />
+                      </div>
+                      <h2 className="card-text mt-2" style={{color: '#FFFFFF'}}>
                         {(boatOwners.length / (Object.keys(emailToOwnerMap).length || 1)).toFixed(1)}
                       </h2>
                     </div>
@@ -341,36 +376,48 @@ const BoatOwnerDetails = () => {
                 </div>
               </div>
 
-              {/* Unique Owners Table */}
               <div className="card mb-4" style={{ 
-                backgroundColor: 'rgba(250, 243, 243, 0.05)',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
+                backgroundColor: 'rgba(10, 15, 25, 0.65)', // Slightly more opaque card
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
+                border: '1px solid rgba(255, 255, 255, 0.15)' // Kept border for definition
               }}>
-                <div className="card-header d-flex justify-content-between align-items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}>
-                  <h5 className="mb-0">
+                <div className="card-header d-flex justify-content-between align-items-center" style={{ 
+                  backgroundColor: 'rgba(15, 20, 30, 0.75)', // Slightly more opaque header
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)' // Kept border
+                }}>
+                  <h5 className="mb-0" style={{color: 'rgba(230,230,240,0.95)'}}>
                     <FontAwesomeIcon icon={faUser} className="me-2" />
                     Boat Owners
                   </h5>
-                  <span className="badge bg-primary">{uniqueFilteredOwners.length} owners</span>
+                  <span className="badge" style={{ 
+                    backgroundColor: 'rgba(13, 110, 253, 0.3)',
+                    backdropFilter: 'blur(5px)',
+                    border: '1px solid rgba(13, 110, 253, 0.5)',
+                    color: '#fff'
+                  }}>
+                    {uniqueFilteredOwners.length} owners
+                  </span>
                 </div>
                 <div className="card-body p-0">
                   <div className="table-responsive">
-                    <table className="table table-hover align-middle mb-0">
-                      <thead style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
+                    {/* ADDED table-dark CLASS HERE */}
+                    <table className="table table-dark table-hover align-middle mb-0">
+                      {/* REMOVED inline background style from thead as table-dark handles it */}
+                      <thead> 
                         <tr>
-                          <th scope="col" className="ps-4">Owner</th>
-                          <th scope="col">Email</th>
-                          <th scope="col">Contact</th>
-                          <th scope="col">Total Boats</th>
-                          <th scope="col" className="pe-4">Actions</th>
+                          <th scope="col" className="ps-4" style={tableHeaderStyle}>Owner</th>
+                          <th scope="col" style={tableHeaderStyle}>Email</th>
+                          <th scope="col" style={tableHeaderStyle}>Contact</th>
+                          <th scope="col" style={tableHeaderStyle}>Total Boats</th>
+                          <th scope="col" className="pe-4" style={tableHeaderStyle}>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {isLoading ? (
                           <tr>
-                            <td colSpan="5" className="text-center py-4">
-                              <div className="spinner-border text-light me-2" role="status">
+                            <td colSpan="5" className="text-center py-4"> {/* table-dark handles text color */}
+                              <div className="spinner-border me-2" role="status"> {/* text-light not needed if parent is dark */}
                                 <span className="visually-hidden">Loading...</span>
                               </div>
                               Loading owner data...
@@ -380,10 +427,8 @@ const BoatOwnerDetails = () => {
                           uniqueFilteredOwners.map((owner) => (
                             <tr 
                               key={owner.email || owner.id} 
-                              style={{ 
-                                cursor: 'pointer',
-                                borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
-                              }}
+                              // REMOVED borderBottom style as table-dark handles borders
+                              style={{ cursor: 'pointer' }} 
                               onClick={() => handleViewBoatsByEmail(owner.email || owner.id)}
                             >
                               <td className="ps-4">
@@ -393,31 +438,51 @@ const BoatOwnerDetails = () => {
                                     style={{
                                       width: '40px',
                                       height: '40px',
-                                      backgroundColor: 'rgba(78, 154, 241, 0.2)',
-                                      color: '#4e9af1'
+                                      background: 'rgba(78, 154, 241, 0.2)', // Kept for accent
+                                      backdropFilter: 'blur(5px)',
+                                      border: '1px solid rgba(78, 154, 241, 0.4)',
+                                      color: '#6badec' 
                                     }}
                                   >
                                     <FontAwesomeIcon icon={faUser} />
                                   </div>
                                   <div>
-                                    <h6 className="mb-0">{owner.name || 'Unnamed Owner'}</h6>
-                                    <small className="text-muted">{owner.boatName || 'No primary boat'}</small>
+                                    {/* table-dark handles text color, explicit #FFFFFF might be redundant but harmless */}
+                                    <h6 className="mb-0" style={{color: '#FFFFFF'}}>{owner.name || 'Unnamed Owner'}</h6>
+                                    <small style={secondaryTextStyle}>{owner.boatName || 'No primary boat'}</small>
                                   </div>
                                 </div>
                               </td>
+                              {/* table-dark handles text color */}
                               <td>{owner.email || 'No email'}</td>
                               <td>{owner.phone || 'No phone'}</td>
                               <td>
                                 <div className="d-flex align-items-center">
-                                  <span className="badge bg-primary rounded-pill me-2">
+                                  <span 
+                                    className="badge rounded-pill me-2"
+                                    style={{ // Custom badge style kept for accent
+                                      background: 'rgba(13, 110, 253, 0.25)',
+                                      backdropFilter: 'blur(5px)',
+                                      border: '1px solid rgba(13, 110, 253, 0.4)',
+                                      color: '#e0e0ff',
+                                      padding: '0.35em 0.65em',
+                                      fontWeight: '500'
+                                    }}
+                                  >
                                     {ownerBoatCounts[owner.email || owner.id] || 0}
                                   </span>
-                                  <span>registered vessels</span>
+                                  <span style={secondaryTextStyle}>registered vessels</span>
                                 </div>
                               </td>
                               <td className="pe-4">
                                 <button 
-                                  className="btn btn-sm btn-primary me-2"
+                                  className="btn btn-sm"
+                                  style={{ // Custom button style kept
+                                    background: 'rgba(13, 110, 253, 0.25)',
+                                    backdropFilter: 'blur(5px)',
+                                    border: '1px solid rgba(13, 110, 253, 0.45)',
+                                    color: '#e0e0ff' 
+                                  }}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleViewBoatsByEmail(owner.email || owner.id);
@@ -431,7 +496,7 @@ const BoatOwnerDetails = () => {
                           ))
                         ) : (
                           <tr>
-                            <td colSpan="5" className="text-center py-4">
+                            <td colSpan="5" className="text-center py-4"> {/* table-dark handles text color */}
                               {searchTerm ? 'No matching owners found' : 'No boat owners registered'}
                             </td>
                           </tr>
@@ -444,67 +509,89 @@ const BoatOwnerDetails = () => {
             </>
           )}
 
-          {/* Owner's Boats List when in details view */}
           {viewMode === 'details' && (
             <div className="card" style={{ 
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
+              backgroundColor: 'rgba(10, 15, 25, 0.65)', 
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
+              border: '1px solid rgba(255, 255, 255, 0.15)'
             }}>
-              <div className="card-header d-flex justify-content-between align-items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}>
-                <h5 className="mb-0">
+              <div className="card-header d-flex justify-content-between align-items-center" style={{ 
+                backgroundColor: 'rgba(15, 20, 30, 0.75)',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <h5 className="mb-0" style={{color: 'rgba(230,230,240,0.95)'}}>
                   <FontAwesomeIcon icon={faAnchor} className="me-2" />
                   Registered Vessels
                 </h5>
-                <span className="badge bg-primary">{filteredOwners.length} boats</span>
+                <span className="badge" style={{ 
+                  backgroundColor: 'rgba(13, 110, 253, 0.3)',
+                  backdropFilter: 'blur(5px)',
+                  border: '1px solid rgba(13, 110, 253, 0.5)',
+                  color: '#fff'
+                }}>
+                  {filteredOwners.length} boats
+                </span>
               </div>
               <div className="card-body p-0">
-                <div className="row p-4">
+                <div className="row p-4"> {/* Stats cards remain styled as before */}
                   <div className="col-md-3 mb-4">
-                    <div className="card bg-primary bg-opacity-10 border-primary border-opacity-25 rounded-3">
+                    <div 
+                      className="card border-0 rounded-3 h-100"
+                      style={{ background: 'rgba(13, 110, 253, 0.15)', backdropFilter: 'blur(10px)', boxShadow: '0 4px 15px rgba(13, 110, 253, 0.2)', border: '1px solid rgba(13, 110, 253, 0.3)' }}
+                    >
                       <div className="card-body p-3">
                         <div className="d-flex justify-content-between align-items-center">
-                          <h6 className="card-title text-primary mb-0">Total Vessels</h6>
+                          <h6 className="card-title text-primary mb-0" style={{fontWeight: '500'}}>Total Vessels</h6>
                           <FontAwesomeIcon icon={faShip} className="text-primary" />
                         </div>
-                        <h3 className="mt-2">{filteredOwners.length}</h3>
+                        <h3 className="mt-2" style={{color: '#FFFFFF'}}>{filteredOwners.length}</h3>
                       </div>
                     </div>
                   </div>
                   <div className="col-md-3 mb-4">
-                    <div className="card bg-success bg-opacity-10 border-success border-opacity-25 rounded-3">
+                     <div 
+                      className="card border-0 rounded-3 h-100"
+                      style={{ background: 'rgba(25, 135, 84, 0.15)', backdropFilter: 'blur(10px)', boxShadow: '0 4px 15px rgba(25, 135, 84, 0.2)', border: '1px solid rgba(25, 135, 84, 0.3)' }}
+                    >
                       <div className="card-body p-3">
                         <div className="d-flex justify-content-between align-items-center">
-                          <h6 className="card-title text-success mb-0">Approved</h6>
+                          <h6 className="card-title text-success mb-0" style={{fontWeight: '500'}}>Approved</h6>
                           <FontAwesomeIcon icon={faShip} className="text-success" />
                         </div>
-                        <h3 className="mt-2">
+                        <h3 className="mt-2" style={{color: '#FFFFFF'}}>
                           {filteredOwners.filter(o => o.status === 'Approved').length}
                         </h3>
                       </div>
                     </div>
                   </div>
                   <div className="col-md-3 mb-4">
-                    <div className="card bg-warning bg-opacity-10 border-warning border-opacity-25 rounded-3">
+                    <div 
+                      className="card border-0 rounded-3 h-100"
+                      style={{ background: 'rgba(255, 193, 7, 0.15)', backdropFilter: 'blur(10px)', boxShadow: '0 4px 15px rgba(255, 193, 7, 0.2)', border: '1px solid rgba(255, 193, 7, 0.3)' }}
+                    >
                       <div className="card-body p-3">
                         <div className="d-flex justify-content-between align-items-center">
-                          <h6 className="card-title text-warning mb-0">Pending</h6>
+                          <h6 className="card-title text-warning mb-0" style={{fontWeight: '500'}}>Pending</h6>
                           <FontAwesomeIcon icon={faShip} className="text-warning" />
                         </div>
-                        <h3 className="mt-2">
+                        <h3 className="mt-2" style={{color: '#FFFFFF'}}>
                           {filteredOwners.filter(o => o.status === 'Pending').length}
                         </h3>
                       </div>
                     </div>
                   </div>
                   <div className="col-md-3 mb-4">
-                    <div className="card bg-danger bg-opacity-10 border-danger border-opacity-25 rounded-3">
+                    <div 
+                      className="card border-0 rounded-3 h-100"
+                      style={{ background: 'rgba(220, 53, 69, 0.15)', backdropFilter: 'blur(10px)', boxShadow: '0 4px 15px rgba(220, 53, 69, 0.2)', border: '1px solid rgba(220, 53, 69, 0.3)' }}
+                    >
                       <div className="card-body p-3">
                         <div className="d-flex justify-content-between align-items-center">
-                          <h6 className="card-title text-danger mb-0">Rejected</h6>
+                          <h6 className="card-title text-danger mb-0" style={{fontWeight: '500'}}>Rejected</h6>
                           <FontAwesomeIcon icon={faShip} className="text-danger" />
                         </div>
-                        <h3 className="mt-2">
+                        <h3 className="mt-2" style={{color: '#FFFFFF'}}>
                           {filteredOwners.filter(o => o.status === 'Rejected').length}
                         </h3>
                       </div>
@@ -513,54 +600,64 @@ const BoatOwnerDetails = () => {
                 </div>
 
                 <div className="table-responsive">
-                  <table className="table table-hover align-middle mb-0">
-                    <thead style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
+                  {/* ADDED table-dark CLASS HERE */}
+                  <table className="table table-dark table-hover align-middle mb-0">
+                    {/* REMOVED inline background style from thead */}
+                    <thead>
                       <tr>
-                        <th scope="col" className="ps-4">Boat Name</th>
-                        <th scope="col">Serial Number</th>
-                        <th scope="col">Year</th>
-                        <th scope="col">Power</th>
-                        <th scope="col">Status</th>
-                        <th scope="col" className="pe-4">Actions</th>
+                        <th scope="col" className="ps-4" style={tableHeaderStyle}>Boat Name</th>
+                        <th scope="col" style={tableHeaderStyle}>Serial Number</th>
+                        <th scope="col" style={tableHeaderStyle}>Year</th>
+                        <th scope="col" style={tableHeaderStyle}>Power</th>
+                        <th scope="col" style={tableHeaderStyle}>Status</th>
+                        <th scope="col" className="pe-4" style={tableHeaderStyle}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
+                      {/* In details view, 'filteredOwners' now refers to the boats of the selected owner */}
                       {filteredOwners.length > 0 ? (
                         filteredOwners.map((boat) => (
                           <tr 
                             key={boat.id} 
-                            style={{ 
-                              cursor: 'pointer',
-                              borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
-                            }}
-                            onClick={() => handleOwnerClick(boat)}
+                            // REMOVED borderBottom style
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => handleOwnerClick(boat)} // This passes the specific boat's data
                           >
                             <td className="ps-4">
                               <div className="d-flex align-items-center">
                                 <div 
                                   className="rounded-circle d-flex align-items-center justify-content-center me-3"
-                                  style={{
+                                  style={{ // Accent style kept
                                     width: '40px',
                                     height: '40px',
-                                    backgroundColor: 'rgba(78, 154, 241, 0.2)',
-                                    color: '#4e9af1'
+                                    background: 'rgba(78, 154, 241, 0.2)',
+                                    backdropFilter: 'blur(5px)',
+                                    border: '1px solid rgba(78, 154, 241, 0.4)',
+                                    color: '#6badec'
                                   }}
                                 >
                                   <FontAwesomeIcon icon={faShip} />
                                 </div>
                                 <div>
-                                  <h6 className="mb-0">{boat.boatName || 'Unnamed Vessel'}</h6>
-                                  <small className="text-muted">ID: {boat.id.substring(0, 8)}...</small>
+                                  <h6 className="mb-0" style={{color: '#FFFFFF'}}>{boat.boatName || 'Unnamed Vessel'}</h6>
+                                  <small style={secondaryTextStyle}>ID: {boat.id.substring(0, 8)}...</small>
                                 </div>
                               </div>
                             </td>
+                            {/* table-dark handles text color */}
                             <td>{boat.serialNumber || 'N/A'}</td>
                             <td>{boat.year || 'N/A'}</td>
                             <td>{boat.power ? `${boat.power} HP` : 'N/A'}</td>
                             <td>{getStatusBadge(boat.status)}</td>
                             <td className="pe-4">
                               <button 
-                                className="btn btn-sm btn-outline-primary"
+                                className="btn btn-sm"
+                                style={{ // Custom button style kept
+                                  background: 'rgba(13, 110, 253, 0.25)',
+                                  backdropFilter: 'blur(5px)',
+                                  border: '1px solid rgba(13, 110, 253, 0.45)',
+                                  color: '#e0e0ff'
+                                }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleOwnerClick(boat);
@@ -573,8 +670,8 @@ const BoatOwnerDetails = () => {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="6" className="text-center py-4">
-                            {searchTerm ? 'No matching boats found' : 'No boats registered for this owner'}
+                          <td colSpan="6" className="text-center py-4"> {/* table-dark handles text color */}
+                            {searchTerm && selectedEmail ? 'No matching boats found for this owner with current filter' : 'No boats registered for this owner'}
                           </td>
                         </tr>
                       )}
@@ -587,8 +684,8 @@ const BoatOwnerDetails = () => {
         </div>
 
         {/* Footer */}
-        <div className="w-100 px-4 py-3 border-top border-secondary text-center small text-muted">
-          <p className="mb-0">
+        <div className="w-100 px-4 py-3 border-top text-center small" style={{borderColor: 'rgba(255, 255, 255, 0.15) !important'}}>
+          <p className="mb-0" style={{ color: 'rgba(200, 200, 210, 0.7)' }}>
             Fisheries Management System • v2.3.0 • © {new Date().getFullYear()}
           </p>
         </div>
