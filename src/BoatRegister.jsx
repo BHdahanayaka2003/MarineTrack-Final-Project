@@ -911,40 +911,50 @@ const RequestPanel = () => {
                 </div>
             )}
 
-            {/* Main Content Panel */}
-            <div
-                className="container-fluid bg-white rounded-4 shadow-lg p-4"
-                style={{ maxWidth: "1600px", width: '95%', maxHeight: "95vh", overflowY: "auto" }} // Adjusted max-width and overflow
+           
+                        <div
+                            className="container-fluid rounded-4 shadow-lg p-4"
+                            style={{
+                                maxWidth: "1600px",
+                                width: "95%",
+                                maxHeight: "95vh",
+                                overflowY: "auto",
+                                backgroundColor: "rgba(79, 76, 76, 0.33)"
+                            }} // Adjusted max-width and overflow
             >
-                {/* Header */}
+               
                 <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                     <div className="d-flex align-items-center">
-                        <img
-                            src={logoImage}
-                            alt="System Logo"
-                            style={{ width: "50px", height: "auto" }}
-                            className="me-3"
-                        />
-                        <h2 className="m-0 text-primary fw-bold">Boat Registration Approval</h2>
+                        <button
+                            onClick={handleBack}
+                            style={{
+                                background: "none",
+                                border: "none",
+                                padding: 0,
+                                cursor: "pointer",
+                            }}
+                        >
+                            <img
+                                src={logoImage}
+                                alt="System Logo"
+                                style={{ width: "50px", height: "auto" }}
+                                className="me-3"
+                            />
+                        </button>
+                        <h2 className="m-0 text-white fw-bold">Boat Registration Approval</h2>
                     </div>
-                    <button
-                        className="btn btn-outline-secondary" // Changed style slightly
-                        onClick={handleBack}
-                    >
-                        <i className="bi bi-arrow-left-circle me-1"></i> Back to Dashboard
-                    </button>
                 </div>
 
-                {/* Filters and Summary */}
-                <div className="row mb-4 align-items-center">
-                    <div className="col-lg-5 col-md-6 mb-2 mb-md-0">
+               
+                <div className="row mb-4 align-items-center ">
+                    <div className="col-lg-5 col-md-6 mb-2 mb-md-0 ">
                         <div className="input-group">
-                            <span className="input-group-text bg-light border-end-0">
+                            <span className="input-group-text bg-light ">
                                 <i className="bi bi-search"></i>
                             </span>
                             <input
                                 type="text"
-                                className="form-control border-start-0"
+                                className="form-control bg-transparent border-start-0"
                                 placeholder="Search requests (Name, Boat, NIC, ID, Reg ID...)" // Updated placeholder
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -955,7 +965,7 @@ const RequestPanel = () => {
                         <div className="input-group">
                             <span className="input-group-text bg-light"><i className="bi bi-filter"></i></span>
                             <select
-                                className="form-select"
+                                className="form-select bg-transparent"
                                 value={filterStatus}
                                 onChange={(e) => setFilterStatus(e.target.value)}
                                 aria-label="Filter by status"
@@ -967,7 +977,7 @@ const RequestPanel = () => {
                             </select>
                         </div>
                     </div>
-                    <div className="col-lg-4 text-lg-end text-center mt-2 mt-lg-0">
+                    <div className="col-lg-4 text-lg-end text-center mt-3 mt-lg-0">
                         <span className="text-muted me-3">
                             Showing: {displayedRequests.length} / {requests.length} Requests
                         </span>
@@ -988,8 +998,10 @@ const RequestPanel = () => {
                     {/* Request List Column */}
                     <div className="col-lg-5">
                         <div className="card h-100 border-0 shadow-sm"> {/* Added h-100 */}
-                            <div className="card-header bg-gradient bg-primary text-white">
-                                <h5 className="mb-0"><i className="bi bi-list-ul me-2"></i>Registration Requests</h5>
+                        <div className="card-header  text-black d-flex justify-content-between align-items-center">
+                          
+
+                                <h5 className="mb-0"><i className="bi bi-list me-2"></i>Registration Requests</h5>
                             </div>
                             <div className="card-body p-0" style={{ maxHeight: "calc(95vh - 280px)", overflowY: "auto" }}> {/* Adjusted maxHeight */}
                                 {loading ? (
@@ -1044,7 +1056,7 @@ const RequestPanel = () => {
                     {/* Request Details Column */}
                     <div className="col-lg-7">
                         <div className="card h-100 border-0 shadow-sm"> {/* Added h-100 */}
-                            <div className="card-header bg-gradient bg-primary text-white d-flex justify-content-between align-items-center">
+                            <div className="card-header bg-gradient text-black d-flex justify-content-between align-items-center">
                                 <h5 className="mb-0"><i className="bi bi-file-earmark-text me-2"></i>Request Details</h5>
                                 {selectedRequest && (
                                     <span className={`badge fs-6 ${getStatusBadgeClass(selectedRequest.status)}`}>
