@@ -74,7 +74,7 @@ function LoginPage() {
   return (
     <div className="login-container">
       <div className="left-section">
-        <img src={logo} alt="NautiReg Logo" className="logo" />
+        <img src={logo} alt="NautiReg Logo" className="brand-logo" />
       </div>
       <div className="right-section">
         <div className="login-box">
