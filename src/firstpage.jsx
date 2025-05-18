@@ -5,7 +5,6 @@ import './firstpage.css';
 import logo from './logo.png';
 import backgroundImage from './background.jpeg';
 
-// Assuming you might use a UI library, but implementing with native elements
 const FirstPage = () => {
   const navigate = useNavigate();
   const [isLoaded, setIsLoaded] = useState(false);
@@ -38,8 +37,10 @@ const FirstPage = () => {
       />
       
       <div className="left-section">
-        <div className="logo-container">
-          <img className="logo" src={logo} alt="Company Logo" />
+        <div className="brand-container">
+          <div className="logo-wrapper">
+            <img className="main-logo" src={logo} alt="Company Logo" />
+          </div>
           <p className="tagline">Your journey begins here</p>
         </div>
         
@@ -49,14 +50,15 @@ const FirstPage = () => {
             <span>Login</span>
           </button>
           
-          {/* <button className="signup-button" onClick={handleSignup}>
-            <span>Create Account</span>
-          </button> */}
+          
         </div>
       </div>
       
       <div className="right-section">
-        {/* This section can be used for additional content */}
+        <div className="welcome-message">
+          <h2>Welcome Aboard</h2>
+          <p>Discover a world of possibilities with our maritime services</p>
+        </div>
       </div>
     </div>
   );

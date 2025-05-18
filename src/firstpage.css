@@ -1,9 +1,10 @@
-/* Modern CSS with better organization and variables */
+
+/* Modified CSS with removed glow effect and increased logo size */
 :root {
-  --primary-color: #D4AF37; /* Gold color for login button */
-  --primary-hover: #BF9B30; /* Darker gold for hover state */
-  --signup-color: #ff9900; /* Original orange color for signup button */
-  --signup-hover: #e68a00; /* Hover color for signup button */
+  --primary-color: #3470E4; /* Changed to a more vibrant blue */
+  --primary-hover: #2751A3; /* Darker blue for hover state */
+  --signup-color: #D4AF37; /* Gold color for signup button */
+  --signup-hover: #BF9B30; /* Darker gold for hover state */
   --text-dark: #0a0a0a;
   --text-light: #ffffff;
   --overlay-dark: rgba(0, 0, 0, 0.7);
@@ -29,7 +30,7 @@
   height: 100%;
   object-fit: cover;
   z-index: -1;
-  filter: blur(2px);
+  filter: blur(1px); /* Reduced blur for sharper background */
 }
 
 /* Left Section (Logo & Branding) */
@@ -46,30 +47,43 @@
   gap: 2rem;
 }
 
-.logo-container {
+.brand-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-bottom: 4rem;
 }
 
-.logo {
-  width: 280px;
+/* Logo styling - removed glow effect and increased size */
+.logo-wrapper {
+  width: 220px; /* Increased from 180px */
+  height: 220px; /* Increased from 180px */
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  /* Removed box-shadow that was causing the glow */
+  margin-bottom: 1.5rem;
+}
+
+.main-logo {
+  width: 100%;
   height: auto;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.2));
   transition: transform var(--transition-speed);
 }
 
-.logo:hover {
-  transform: scale(1.05);
+.logo-wrapper:hover .main-logo {
+  transform: scale(1.05); /* Reduced scale effect on hover */
 }
 
 .tagline {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   margin-top: 1rem;
   text-align: center;
   font-weight: 300;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .buttons-container {
@@ -82,9 +96,9 @@
 
 .login-button {
   width: 100%;
-  padding: 12px 0;
-  background-color: var(--primary-color); /* Gold color */
-  color: var(--text-dark);
+  padding: 14px 0;
+  background-color: var(--primary-color);
+  color: var(--text-light);
   border: none;
   font-size: 18px;
   font-weight: 600;
@@ -100,14 +114,14 @@
 }
 
 .login-button:hover {
-  background-color: var(--primary-hover); /* Darker gold on hover */
+  background-color: var(--primary-hover);
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .signup-button {
   width: 100%;
-  padding: 12px 0;
+  padding: 14px 0;
   background-color: transparent;
   color: var(--signup-color);
   border: 2px solid var(--signup-color);
@@ -125,7 +139,7 @@
 }
 
 .signup-button:hover {
-  background-color: rgba(255, 153, 0, 0.1);
+  background-color: rgba(212, 175, 55, 0.15);
   color: var(--signup-color);
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
@@ -135,12 +149,34 @@
   font-size: 20px;
 }
 
-/* Right Section (could be used for info or images) */
+/* Right Section */
 .right-section {
   flex: 1;
   position: relative;
-  overflow: hidden;
-  display: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.welcome-message {
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  text-align: center;
+  color: var(--text-light);
+  max-width: 400px;
+}
+
+.welcome-message h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--signup-color);
+}
+
+.welcome-message p {
+  font-size: 1.2rem;
+  line-height: 1.6;
 }
 
 /* Animation for content */
@@ -149,18 +185,29 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.logo-container, .buttons-container {
+.brand-container, .buttons-container, .welcome-message {
+  opacity: 0;
   animation: fadeIn 1s ease-out forwards;
 }
 
-.buttons-container {
-  animation-delay: 0.3s;
+.brand-container {
+  animation-delay: 0.2s;
 }
+
+.buttons-container {
+  animation-delay: 0.4s;
+}
+
+.welcome-message {
+  animation-delay: 0.6s;
+}
+
+/* Removed pulsing animation for the logo */
 
 /* Responsive design */
 @media (min-width: 768px) {
   .right-section {
-    display: block;
+    display: flex;
   }
 }
 
@@ -168,5 +215,17 @@
   .left-section {
     width: 100%;
   }
+  
+  .right-section {
+    display: none;
+  }
+  
+  .logo-wrapper {
+    width: 280px; /* Increased from 250px */
+    height: 280px; /* Increased from 250px */
+  }
+  
+  .tagline {
+    font-size: 1.2rem;
+  }
 }
-/* Add any additional media queries for responsiveness */
