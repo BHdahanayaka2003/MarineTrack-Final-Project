@@ -165,7 +165,6 @@ const DepartureDetails = () => {
   }, [fetchData]);
 
   // Memoized helper functions for data processing (called within useEffect)
-  // These don't need to be useCallback if only used in one useEffect and their dependencies are already in that useEffect
   const calculateStats = useCallback(() => {
     const now = new Date();
     const active = departures.filter(dep => dep.status === 'departed' && !dep.arrivalTimestamp).length;
@@ -944,12 +943,14 @@ const DepartureDetails = () => {
   // --- MAIN RENDER ---
   return (
     <div style={{
-        minHeight: '100vh',
+        width: '100vw', // Changed from minHeight
+        height: '100vh', // Added for explicit full height
+        overflow: 'hidden', // Prevent scrollbars on this root component div
         backgroundImage: `linear-gradient(rgba(10, 25, 41, 0.85), rgba(10, 25, 41, 0.95)), url('https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTZ8fGhhcmJvcnxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=1000&q=60')`,
         backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed',
         color: '#e0e0e0' 
       }}>
-      <div className="container-fluid d-flex flex-column p-0" style={{minHeight: '100vh'}}> {/* Ensure this container-fluid also takes minHeight */}
+      <div className="container-fluid d-flex flex-column p-0" style={{height: '100%'}}> {/* Changed minHeight: '100vh' to height: '100%' */}
         <header className="py-3 bg-dark bg-opacity-50 shadow-sm">
           <div className="container-fluid"> {/* Changed to container-fluid */}
             <div className="row align-items-center">
@@ -968,7 +969,7 @@ const DepartureDetails = () => {
           </div>
         </header>
 
-        <main className="flex-grow-1">
+        <main className="flex-grow-1" style={{ overflowY: 'auto' }}> {/* Added overflowY: 'auto' for scrollable main content */}
           <div className="container-fluid py-4"> {/* Changed to container-fluid */}
             <Alert />
             <ul className="nav nav-pills nav-fill mb-4">
@@ -1003,6 +1004,17 @@ const DepartureDetails = () => {
         </footer>
       </div>
       <style jsx global>{`
+        /* Optional: If this component is the root of your app, ensure html and body are also full height and no margin/padding.
+           This is typically done in a global CSS file (e.g., index.css or App.css).
+        html, body, #root { // Replace #root with your actual React root element ID if different
+          height: 100%;
+          width: 100%;
+          margin: 0;
+          padding: 0;
+          overflow: hidden; // Important to prevent body scrollbars when component is exactly 100vh/100vw
+        }
+        */
+
         .bg-primary-soft { background-color: rgba(var(--bs-primary-rgb), 0.15) !important; }
         .bg-info-soft { background-color: rgba(var(--bs-info-rgb), 0.15) !important; }
         .bg-success-soft { background-color: rgba(var(--bs-success-rgb), 0.15) !important; }
