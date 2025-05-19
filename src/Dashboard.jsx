@@ -496,13 +496,6 @@ const Dashboard = () => {
       description: "Process fisherman identification cards"
     },
     { 
-      label: "Remove Register Details", 
-      color: "info", 
-      path: "/remove-details",
-      icon: "bi-trash",
-      description: "Delete registration records from database"
-    },
-    { 
       label: "Departure Details", 
       color: "primary", 
       path: "/departureDetails",
