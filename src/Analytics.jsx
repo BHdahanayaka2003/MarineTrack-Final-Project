@@ -23,7 +23,7 @@ import {
 import { saveAs } from 'file-saver'; // For CSV export
 import { saveSvgAsPng } from 'save-svg-as-png'; // For chart PNG export
 
-// Fireb</div>ase configuration (ensure this is secure in a real app, e.g., via environment variables)
+// Firebase configuration (ensure this is secure in a real app, e.g., via environment variables)
 const firebaseConfig = {
   apiKey: "AIzaSyCRjW_lsIwKlL99xi0hU2_x2xWVSTBSkTg",
   authDomain: "finalproject-4453c.firebaseapp.com",
@@ -81,17 +81,17 @@ const Analytics = () => {
 
         if (querySnapshot.empty) {
           console.warn("No boat data found in Firestore.");
-          // Reset to default empty state, but keep month structure for charts
+          const currentYear = new Date().getFullYear();
           const defaultMonthly = Array(12).fill(0).map((_, index) => ({
-            month: new Date(new Date().getFullYear(), index, 1).toLocaleString('default', { month: 'short' }),
+            month: new Date(currentYear, index, 1).toLocaleString('default', { month: 'short' }),
             count: 0
           }));
           const defaultDetailedMonthly = Array(12).fill(0).map((_, index) => ({
-            month: new Date(new Date().getFullYear(), index, 1).toLocaleString('default', { month: 'short' }),
+            month: new Date(currentYear, index, 1).toLocaleString('default', { month: 'short' }),
             approved: 0, pending: 0, rejected: 0
           }));
           setAnalyticsData(prev => ({
-            ...prev, // Keep other structure
+            ...prev, 
             totalOwners: 0, totalBoats: 0, approvedBoats: 0, pendingBoats: 0, rejectedBoats: 0,
             monthlyRegistrations: defaultMonthly,
             boatsByPowerCategory: { small: 0, medium: 0, large: 0 },
@@ -118,20 +118,16 @@ const Analytics = () => {
         const boatAges = { new: 0, medium: 0, old: 0, vintage: 0 };
         
         const currentYear = new Date().getFullYear();
-        // Initialize monthlyData with current year's months
         const monthlyDataCounts = Array(12).fill(0);
         const detailedMonthlyData = Array(12).fill(null).map(() => ({ approved: 0, pending: 0, rejected: 0 }));
 
 
         boatsData.forEach(boat => {
-          const registrationTimestamp = boat.registrationDate?.toDate ? boat.registrationDate.toDate() : new Date(); // Use current date as fallback
-          const registrationMonth = registrationTimestamp.getMonth(); // 0-11
+          const registrationTimestamp = boat.registrationDate?.toDate ? boat.registrationDate.toDate() : new Date(); 
+          const registrationMonth = registrationTimestamp.getMonth(); 
           const registrationYear = registrationTimestamp.getFullYear();
 
-          // Only count for current year for this specific chart, or apply timeFilter logic here
-          // For simplicity, this example assumes we primarily care about the current year's monthly breakdown.
-          // A more robust solution would filter by `timeFilter` here.
-          if (registrationYear === currentYear) { // Basic filter for current year
+          if (registrationYear === currentYear) { 
             monthlyDataCounts[registrationMonth]++;
             if (boat.status === 'Approved') detailedMonthlyData[registrationMonth].approved++;
             else if (boat.status === 'Pending') detailedMonthlyData[registrationMonth].pending++;
@@ -206,8 +202,7 @@ const Analytics = () => {
     };
 
     fetchAnalyticsData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeFilter]); // Removed 'db' as it's constant. Add if it can change.
+  }, [timeFilter]);
 
   const calculatePercentage = (value, total) => {
     if (total === 0) return 0;
@@ -216,12 +211,11 @@ const Analytics = () => {
 
   const handleExportChartPNG = (chartRef, filename) => {
     if (chartRef.current) {
-      // Recharts often wraps charts. We need the actual SVG node.
       const svgElement = chartRef.current.querySelector('svg');
       if (svgElement) {
         saveSvgAsPng(svgElement, `${filename}.png`, {
-          backgroundColor: '#1a1a2e', // Match dark background
-          scale: 1.5, // For better resolution
+          backgroundColor: '#1a1a2e', 
+          scale: 1.5, 
         }).catch(e => console.error("Error exporting chart as PNG:", e));
       } else {
         console.error("SVG element not found for chart export.");
@@ -252,10 +246,8 @@ const Analytics = () => {
 
   const renderOverviewTab = () => (
     <>
-      {/* Overview Stats Cards - styling slightly refined */}
+      {/* Overview Stats Cards */}
       <div className="row mb-4">
-        {/* ... (Stat cards are mostly fine, maybe add subtle hover effect or refine bg opacity) ... */}
-        {/* Example for one card with slight visual enhancement possibility */}
         <div className="col-lg-3 col-md-6 mb-4">
           <div className="card h-100" style={{ backgroundColor: 'rgba(255, 255, 255, 0.07)', border: '1px solid rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(10px)' }}>
             <div className="card-body">
@@ -423,13 +415,12 @@ const Analytics = () => {
                     </PieChart>
                 </ResponsiveContainer>
                  ) : <p className="text-muted">No data for chart</p>}
-                {/* Legend can be part of Recharts or custom as before */}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Additional Analytics Cards - Example for Boat Power Categories using Recharts BarChart */}
+      {/* Additional Analytics Cards */}
       <div className="row">
         <div className="col-lg-4 mb-4">
           <div className="card" style={{ backgroundColor: 'rgba(255, 255, 255, 0.07)', boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)', border: '1px solid rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(10px)' }}>
@@ -442,7 +433,6 @@ const Analytics = () => {
             <div className="card-body">
               {['small', 'medium', 'large'].map((category, index) => {
                 const categoryMap = { small: 'Small (<50 HP)', medium: 'Medium (50-150 HP)', large: 'Large (>150 HP)'};
-                const colors = ['#0d6efd', '#198754', '#ffc107']; // primary, success, warning
                 const value = analyticsData.boatsByPowerCategory[category];
                 return (
                   <div key={category} className="mb-3">
@@ -465,8 +455,6 @@ const Analytics = () => {
             </div>
           </div>
         </div>
-        {/* ... Other cards (Owner Statistics, Boat Age Distribution) can be similarly styled or converted to Recharts if complex viz is needed ... */}
-        {/* For Owner Statistics, a simple horizontal bar chart in Recharts could be nice */}
         <div className="col-lg-4 mb-4">
           <div className="card" style={{ backgroundColor: 'rgba(255, 255, 255, 0.07)', boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)', border: '1px solid rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(10px)' }}>
             <div className="card-header" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
@@ -504,9 +492,6 @@ const Analytics = () => {
                         </Bar>
                     </BarChart>
                 </ResponsiveContainer>
-                 <div className="mt-3">
-                    {/* Legend items here if needed, or rely on tooltip */}
-                 </div>
             </div>
           </div>
         </div>
@@ -521,7 +506,6 @@ const Analytics = () => {
             <div className="card-body">
               {Object.entries(analyticsData.boatAgeDistribution).map(([ageCategory, count], index) => {
                 const ageLabels = { new: 'New (0-2 yrs)', medium: 'Medium (3-10 yrs)', old: 'Old (11-20 yrs)', vintage: 'Vintage (20+ yrs)'};
-                const colors = ['#198754', '#0d6efd', '#ffc107', '#dc3545']; // success, primary, warning, danger
                 return (
                   <div key={ageCategory} className="mb-3">
                     <div className="d-flex justify-content-between align-items-center mb-1">
@@ -555,7 +539,6 @@ const Analytics = () => {
                 Registration Trends (Current Year by Status)
               </h5>
               <div className="btn-group">
-                {/* Time filter buttons can be enhanced to actually filter data in useEffect */}
                 {['all', 'year', 'month'].map(filter => (
                     <button 
                         key={filter}
@@ -586,7 +569,6 @@ const Analytics = () => {
                   <Area type="monotone" dataKey="approved" stackId="1" stroke="#28a745" fill="#28a745" fillOpacity={0.5} name="Approved"/>
                   <Area type="monotone" dataKey="pending" stackId="1" stroke="#ffc107" fill="#ffc107" fillOpacity={0.5} name="Pending"/>
                   <Area type="monotone" dataKey="rejected" stackId="1" stroke="#dc3545" fill="#dc3545" fillOpacity={0.5} name="Rejected"/>
-                  {/* Optional: Add lines for clearer trend */}
                    <Line type="monotone" dataKey="approved" stroke="#28a745" strokeWidth={2} dot={false} />
                    <Line type="monotone" dataKey="pending" stroke="#ffc107" strokeWidth={2} dot={false} />
                    <Line type="monotone" dataKey="rejected" stroke="#dc3545" strokeWidth={2} dot={false} />
@@ -596,7 +578,6 @@ const Analytics = () => {
           </div>
         </div>
       </div>
-      {/* Mock data charts can remain SVG or be simple Recharts if desired */}
       <div className="row">
         <div className="col-lg-6 mb-4">
           <div className="card" style={{ backgroundColor: 'rgba(255, 255, 255, 0.07)', boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)', border: '1px solid rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(10px)' }}>
@@ -606,8 +587,7 @@ const Analytics = () => {
                 Regional Distribution (Mock)
               </h5>
             </div>
-            <div className="card-body" style={{ minHeight: '320px' }}> {/* Ensure space */}
-              {/* Original SVG or a simple Recharts Bar Chart for mock data */}
+            <div className="card-body" style={{ minHeight: '320px' }}>
               <p className="text-center text-light opacity-50 mt-5"> (Mock data visualization for regional distribution) </p>
             </div>
           </div>
@@ -630,7 +610,7 @@ const Analytics = () => {
   );
 
   const renderPredictionsTab = () => {
-    const forecastData = [ // Mock data
+    const forecastData = [ 
         { month: "Jun", forecast: 18, lower: 15, upper: 21 }, { month: "Jul", forecast: 22, lower: 18, upper: 26 },
         { month: "Aug", forecast: 25, lower: 20, upper: 30 }, { month: "Sep", forecast: 20, lower: 16, upper: 24 },
         { month: "Oct", forecast: 16, lower: 13, upper: 19 }, { month: "Nov", forecast: 14, lower: 11, upper: 17 }
@@ -668,7 +648,7 @@ const Analytics = () => {
                     <Legend wrapperStyle={{ color: 'rgba(255,255,255,0.8)' }} />
                     <Area type="monotone" dataKey="upper" stroke="transparent" fill="#8e44ad" fillOpacity={0.2} name="Upper Bound" stackId="confidence" />
                     <Area type="monotone" dataKey="lower" stroke="transparent" fill="#8e44ad" fillOpacity={0.2} name="Lower Bound" stackId="confidence" 
-                        baseValue={dataMin => (dataMin || 0) - 1000 } // Hack to make it look like a band
+                        baseValue={dataMin => (dataMin || 0) - 1000 } 
                     />
                     <Line type="monotone" dataKey="forecast" stroke="#8e44ad" strokeWidth={3} dot={{ r: 5 }} activeDot={{ r: 7 }} name="Forecast"/>
                 </ComposedChart>
@@ -688,7 +668,6 @@ const Analytics = () => {
               </h5>
             </div>
             <div className="card-body">
-                {/* Mock Progress Bars - they are mostly fine as is */}
                 {[
                     { name: 'Fishing Boats', growth: '+8%', width: '80%', color: 'success'},
                     { name: 'Cruisers', growth: '+12%', width: '70%', color: 'primary'},
@@ -726,9 +705,11 @@ const Analytics = () => {
           backgroundSize: 'cover', 
           backgroundPosition: 'center', 
           backgroundAttachment: 'fixed',
-          minHeight: '100vh', 
+          width: '100vw', // ADDED
+          height: '100vh', // CHANGED
+          overflow: 'hidden', // ADDED
           color: "white",
-          backdropFilter: 'blur(3px)' // Slight blur on loading background
+          backdropFilter: 'blur(3px)' 
         }}>
         <div className="spinner-border text-primary" role="status" style={{width: '3.5rem', height: '3.5rem'}}>
           <span className="visually-hidden">Loading...</span>
@@ -741,17 +722,18 @@ const Analytics = () => {
   if (error) {
     return (
       <div style={{ 
-        width: '100%', // Added
-          boxSizing: 'border-box', // Added
+          width: '100vw', // CHANGED
+          height: '100vh', // CHANGED
+          overflow: 'hidden', // ADDED
+          boxSizing: 'border-box', 
           backgroundImage: `url(${backgroundImage})`, 
           backgroundSize: 'cover', 
           backgroundPosition: 'center', 
           backgroundAttachment: 'fixed',
-          minHeight: '100vh', 
-          padding: '20px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          color: 'white'
         }}>
         <div className="alert alert-danger m-4" role="alert" style={{backgroundColor: 'rgba(220, 53, 69, 0.15)', borderColor: 'rgba(220, 53, 69, 0.4)', color: '#f8d7da', maxWidth: '600px', backdropFilter: 'blur(5px)'}}>
           <h4 className="alert-heading">
@@ -769,18 +751,25 @@ const Analytics = () => {
   // Main component render
   return (
     <div style={{
-         width: '100%', // Added
-      boxSizing: 'border-box', // Added
+      width: '100vw', 
+      height: '100vh', 
+      overflow: 'hidden', 
+      boxSizing: 'border-box',
       backgroundImage: `url(${backgroundImage})`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundAttachment: 'fixed',
-      minHeight: '100vh',
       color: 'white',
-      paddingTop: '1rem', // Reduced top padding
-      paddingBottom: '1rem'
+      display: 'flex', 
+      flexDirection: 'column' 
     }}>
-      <header className="container-fluid d-flex justify-content-between align-items-center p-3 mb-3" style={{ backgroundColor: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', borderRadius: '0.375rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+      <header className="container-fluid d-flex justify-content-between align-items-center p-3 mb-3" style={{ 
+          backgroundColor: 'rgba(0,0,0,0.4)', 
+          backdropFilter: 'blur(10px)', 
+          borderRadius: '0.375rem', 
+          border: '1px solid rgba(255,255,255,0.1)',
+          flexShrink: 0 // Prevent header from shrinking
+        }}>
         <div className="d-flex align-items-center">
           <img src={logoImage} alt="Logo" style={{ height: '40px', marginRight: '15px' }} />
           <h1 className="h4 mb-0 d-none d-md-block text-light">Boat Registration Analytics</h1>
@@ -791,7 +780,11 @@ const Analytics = () => {
         </div>
       </header>
 
-      <div className="container-fluid">
+      <div className="container-fluid" style={{ 
+          flexGrow: 1, // Allow content to take available space
+          overflowY: 'auto', // Make content scrollable
+          paddingBottom: '1rem' // Space before footer
+        }}>
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 px-2">
           <h2 className="h3 mb-3 mb-md-0 text-light">Dashboard Insights</h2>
           <div className="btn-group">
@@ -799,7 +792,7 @@ const Analytics = () => {
               <FontAwesomeIcon icon={faFilter} className="me-2" />
               Filters
             </button>
-            <button className="btn btn-primary" onClick={handleExportDataCSV}> {/* Changed to primary for main action */}
+            <button className="btn btn-primary" onClick={handleExportDataCSV}>
               <FontAwesomeIcon icon={faDownload} className="me-2" />
               Export Full Report (CSV)
             </button>
@@ -812,7 +805,7 @@ const Analytics = () => {
               <button
                 className={`nav-link ${activeTab === tabName ? 'active text-primary border-primary' : 'text-light'}`}
                 style={{
-                  backgroundColor: activeTab === tabName ? 'rgba(13, 110, 253, 0.15)' : 'transparent', // Use primary color with opacity
+                  backgroundColor: activeTab === tabName ? 'rgba(13, 110, 253, 0.15)' : 'transparent',
                   border: 'none',
                   borderBottom: activeTab === tabName ? '3px solid #0d6efd' : '3px solid transparent',
                   padding: '0.75rem 1rem',
@@ -825,7 +818,7 @@ const Analytics = () => {
                 <FontAwesomeIcon 
                     icon={tabName === 'overview' ? faChartBar : tabName === 'detailed' ? faChartLine : faChartPie} 
                     className="me-2" 
-                /> {tabName.replace(/([A-Z])/g, ' $1')} {/* Add space before capital letters if any */}
+                /> {tabName.replace(/([A-Z])/g, ' $1')}
               </button>
             </li>
           ))}
@@ -836,7 +829,12 @@ const Analytics = () => {
         {activeTab === 'predictions' && renderPredictionsTab()}
       </div>
 
-      <footer className="text-center p-3 mt-5 text-light opacity-75" style={{ backgroundColor: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(5px)', borderTop: '1px solid rgba(255,255,255,0.1)'}}>
+      <footer className="text-center p-3 text-light opacity-75" style={{ 
+          backgroundColor: 'rgba(0,0,0,0.4)', 
+          backdropFilter: 'blur(5px)', 
+          borderTop: '1px solid rgba(255,255,255,0.1)',
+          flexShrink: 0 // Prevent footer from shrinking
+        }}>
         © {new Date().getFullYear()} Advanced Boat Registration Analytics. All rights reserved.
       </footer>
     </div>
