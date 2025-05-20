@@ -1,5 +1,4 @@
 
-
 /* Modern Login Page Styling */
 .login-container {
   display: flex;
@@ -7,6 +6,18 @@
   width: 100vw;
   background: url('./background.jpeg') no-repeat center center/cover;
   font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+/* --- Particle Background Styling --- */
+.particles-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
 }
 
 /* Left Section (Logo & Branding) */
@@ -15,13 +26,28 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(0, 0, 0, 0.7); /* Darker overlay for better contrast */
+  z-index: 1;
+  position: relative;
+}
+
+/* ENSURE THIS IS SET FOR ABSOLUTE POSITIONING OF ORBITING TEXT */
+.logo-animation-container {
+  position: relative; 
+  display: flex; 
+  justify-content: center;
+  align-items: center;
+  /* You might want to set a specific width/height if it's not inherently sized by the logo,
+     but flex centering the logo should be fine. */
 }
 
 .brand-logo {
-  width: 450px; /* Increased from 300px to 450px */
+  width: 450px; /* This determines the central object size */
   height: auto;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.2));
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.3));
+  cursor: grab;
+}
+.brand-logo:active {
+    cursor: grabbing;
 }
 
 /* Right Section (Login Box) */
@@ -31,73 +57,87 @@
   justify-content: center;
   align-items: center;
   padding: 20px;
+  z-index: 1;
+  position: relative;
 }
 
-/* Login Box Styling */
 .login-box {
-  background: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.1); 
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
   padding: 2.5rem;
-  border-radius: 12px;
+  border-radius: 16px;
   text-align: left;
   width: 400px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
 }
 
 .login-title {
   margin-top: 0;
   margin-bottom: 1.5rem;
-  color: #333;
-  font-size: 1.7rem;
-  font-weight: 600;
+  color: #f0f0f0;
+  font-size: 1.8rem;
+  font-weight: 700;
   text-align: center;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
-/* Form Inputs */
 .input-group {
   margin-bottom: 1.2rem;
+  position: relative;
 }
 
 .input-group label {
   display: block;
   font-weight: 500;
   margin-bottom: 8px;
-  color: #333;
+  color: #e0e0e0;
   font-size: 0.9rem;
 }
 
 .input-group input {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
   font-size: 16px;
-  background: #fff;
-  color: #333;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
   outline: none;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
+}
+
+.input-group input:-webkit-autofill,
+.input-group input:-webkit-autofill:hover, 
+.input-group input:-webkit-autofill:focus, 
+.input-group input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px rgba(0,0,0,0.2) inset !important;
+    -webkit-text-fill-color: #fff !important;
+    caret-color: #fff;
 }
 
 .input-group input:focus {
-  border-color: #064286;
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+  border-color: #60a5fa;
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .input-group input::placeholder {
-  color: #aaa;
+  color: #bbb;
 }
 
-/* Error Message */
 .error-message {
-  color: #e53935;
+  color: #ffcdd2;
   font-size: 0.9rem;
   margin-bottom: 1rem;
-  padding: 8px 12px;
-  background: rgba(229, 57, 53, 0.1);
-  border-left: 3px solid #e53935;
-  border-radius: 3px;
+  padding: 10px 15px;
+  background: rgba(239, 83, 80, 0.3);
+  border-left: 4px solid #ef5350;
+  border-radius: 4px;
+  backdrop-filter: blur(2px);
 }
 
-/* Form Actions */
 .form-actions {
   display: flex;
   flex-direction: column;
@@ -105,71 +145,80 @@
   margin-top: 1.5rem;
 }
 
-/* Login Button */
 .login-button {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   background-color: #2563eb;
   border: none;
   color: white;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  border-radius: 6px;
-  transition: background-color 0.3s, transform 0.2s;
+  border-radius: 8px;
+  transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
 }
 
 .login-button:hover {
   background-color: #1d4ed8;
 }
 
-.login-button:active {
-  transform: translateY(1px);
-}
-
 .login-button:disabled {
-  background-color: #a0aec0;
+  background-color: rgba(160, 174, 192, 0.5);
+  box-shadow: none;
   cursor: not-allowed;
 }
 
-/* Forgot Password Link */
 .forgot-password {
-  margin-top: 1rem;
+  margin-top: 1.2rem;
   font-size: 0.9rem;
-  color: #4a90e2;
+  color: #bbdefb;
   cursor: pointer;
   text-align: center;
   text-decoration: none;
+  transition: color 0.3s;
 }
 
 .forgot-password:hover {
+  color: #ffffff;
   text-decoration: underline;
 }
 
+/* REMOVE OLD CSS for .text-orbit and .orbiting-text and keyframes */
+/* 
+.text-orbit { ... }
+#text-orbit-1 { ... }
+#text-orbit-2 { ... }
+.orbiting-text { ... }
+@keyframes rotate-orbit-cw { ... }
+@keyframes rotate-orbit-ccw { ... } 
+*/
+/* END: REMOVE OLD CSS */
+
+
 /* Responsive adjustments */
 @media (max-width: 992px) {
-  .login-container {
-    flex-direction: column;
-  }
-  
-  .left-section, .right-section {
-    flex: none;
-  }
-  
-  .left-section {
-    height: 30vh;
-  }
-  
-  .brand-logo {
-    width: 300px; /* Responsive size for mobile */
-  }
-  
-  .right-section {
-    height: 70vh;
-  }
-  
-  .login-box {
-    width: 400px; /* Responsive size for mobile */
-    max-width: 400px;
-  }
+  .login-container { flex-direction: column; }
+  .left-section, .right-section { flex: none; width: 100%; }
+  .left-section { height: auto; min-height: 350px; padding: 20px 0; }
+  .brand-logo { width: 300px; }
+  .right-section { height: auto; padding-bottom: 40px; }
+  .login-box { width: 90%; max-width: 400px; padding: 2rem; }
+
+  /* Adjust orbiting text parameters for smaller screens if needed via props or different components,
+     or you can try to scale the .logo-animation-container and its contents.
+     For simplicity, the current setup uses fixed pixel radii.
+     You might need to pass smaller radius values on smaller screens.
+  */
 }
+
+@media (max-width: 480px) {
+  .left-section { min-height: 280px; }
+  .brand-logo { width: 200px; }
+  .login-box { padding: 1.5rem; }
+  .login-title { font-size: 1.5rem; }
+  .input-group input { padding: 10px 14px; font-size: 15px; }
+  .login-button { padding: 12px; font-size: 15px; }
+  /* Further adjustments for OrbitingText radii would be needed here for very small screens */
+}
+
